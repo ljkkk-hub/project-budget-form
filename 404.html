@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>项目立项预算表</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap');
+  * { box-sizing: border-box; }
+  body { font-family: 'Noto Sans SC', -apple-system, sans-serif; background: #F0F4F8; margin: 0; }
+  .card { background: #fff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+
+  .tbl { border-collapse: collapse; width: 100%; }
+  .tbl th { background: #1E3A5F; color: #fff; font-weight: 600; font-size: 12px; padding: 9px 6px; text-align: center; white-space: nowrap; }
+  .tbl td { border: 1px solid #E2E8F0; padding: 0; font-size: 13px; vertical-align: middle; }
+
+  .kpi-edit { background: #FFFBEB; text-align: center; border: none; outline: none; width: 100%; padding: 7px 4px; font-size: 13px; font-family: inherit; }
+  .kpi-edit:focus { background: #FEF3C7; box-shadow: inset 0 0 0 2px #F59E0B; }
+  .kpi-name { background: #F8FAFC; text-align: left; padding-left: 10px; font-weight: 500; border: none; outline: none; width: 100%; padding: 7px 4px 7px 10px; font-size: 13px; font-family: inherit; }
+  .kpi-name:focus { background: #EFF6FF; }
+  .kpi-calc { background: #F1F5F9; text-align: center; padding: 7px 6px; color: #475569; font-variant-numeric: tabular-nums; }
+  .kpi-seq { background: #F8FAFC; text-align: center; color: #94A3B8; font-size: 12px; padding: 7px 4px; }
+
+  .cost-wrap { min-width: 1280px; }
+  .cost-row-header { background: #F8FAFC; font-weight: 600; font-size: 13px; padding: 8px 12px; white-space: nowrap; text-align: left; border: 1px solid #E2E8F0; min-width: 120px; }
+  .cost-input { background: #FFF8E1; text-align: right; border: none; outline: none; width: 100%; padding: 7px 6px; font-size: 13px; font-family: inherit; font-variant-numeric: tabular-nums; color: #1E293B; }
+  .cost-input:focus { background: #FFECB3; box-shadow: inset 0 0 0 2px #F59E0B; }
+  .cost-input::placeholder { color: #CBD5E1; text-align: center; }
+  .cost-calc { background: #F1F5F9; text-align: right; padding: 7px 8px; color: #475569; font-variant-numeric: tabular-nums; font-weight: 500; border: 1px solid #E2E8F0; font-size: 13px; }
+  .cost-note { font-size: 11px; color: #64748B; line-height: 1.5; padding: 8px 12px; border: 1px solid #E2E8F0; max-width: 260px; }
+
+  .cost-header-type { background: #1E3A5F; color: #fff; font-weight: 600; font-size: 12px; padding: 9px 10px; text-align: left; white-space: nowrap; border: 1px solid #1E3A5F; }
+  .cost-header-time { background: #1E3A5F; color: #fff; font-weight: 600; font-size: 12px; padding: 9px 4px; text-align: center; white-space: nowrap; border: 1px solid #1E3A5F; }
+  .cost-header-month { background: #1E3A5F; color: #fff; font-weight: 600; font-size: 12px; padding: 9px 4px; text-align: center; white-space: nowrap; min-width: 76px; border: 1px solid #1E3A5F; }
+  .cost-header-total { background: #1E3A5F; color: #fff; font-weight: 600; font-size: 12px; padding: 9px 8px; text-align: center; white-space: nowrap; min-width: 90px; border: 1px solid #1E3A5F; }
+  .cost-header-note { background: #1E3A5F; color: #fff; font-weight: 600; font-size: 12px; padding: 9px 10px; text-align: left; white-space: nowrap; min-width: 180px; border: 1px solid #1E3A5F; }
+
+  .row-total td { background: #EEF2FF !important; font-weight: 600; }
+  .row-total .cost-row-header { background: #EEF2FF !important; }
+  .cost-row-even { background: #FAFBFF; }
+  .cost-row-odd  { background: #FFFFFF; }
+  .cost-row-even .cost-row-header { background: #F0F9FF; }
+  .cost-row-odd  .cost-row-header { background: #F8FAFC; }
+
+  .section-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 700; color: #1E3A5F; }
+  .section-badge::before { content: ''; display: block; width: 4px; height: 18px; background: #2563EB; border-radius: 2px; }
+  .del-btn { opacity: 0; cursor: pointer; color: #CBD5E1; font-size: 16px; padding: 2px 6px; transition: all 0.15s; }
+  tr:hover .del-btn { opacity: 1; }
+  .del-btn:hover { color: #EF4444; }
+  .add-row { display: inline-flex; align-items: center; gap: 4px; color: #2563EB; font-size: 13px; font-weight: 500; padding: 6px 14px; border: 1.5px dashed #93C5FD; border-radius: 6px; background: #fff; cursor: pointer; transition: all 0.15s; }
+  .add-row:hover { background: #EFF6FF; border-color: #2563EB; }
+  .btn-main { background: linear-gradient(135deg, #1E3A5F 0%, #2563EB 100%); color: #fff; padding: 14px 48px; border-radius: 10px; font-size: 16px; font-weight: 700; border: none; cursor: pointer; transition: all 0.2s; letter-spacing: 0.03em; }
+  .btn-main:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(37,99,235,0.35); }
+  .btn-main:active { transform: translateY(0); }
+  .badge-ok { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 500; color: #16A34A; background: #F0FDF4; padding: 3px 10px; border-radius: 20px; }
+  .badge-err { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 500; color: #DC2626; background: #FEF2F2; padding: 3px 10px; border-radius: 20px; }
+  .badge-wait { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 500; color: #9CA3AF; background: #F9FAFB; padding: 3px 10px; border-radius: 20px; }
+  .tip { font-size: 11px; color: #94A3B8; display: flex; align-items: center; gap: 4px; }
+  .tip-dot { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
+
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+  input[type="number"] { -moz-appearance: textfield; }
+
+  .form-select { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2364748B' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+
+  .info-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+  .info-row-2 { display: grid; grid-template-columns: 1fr 1fr 2fr; gap: 20px; margin-top: 20px; }
+  .info-row-3 { margin-top: 20px; }
+  .cost-bar-wrap { display: flex; align-items: center; gap: 16px; padding: 10px 16px; border-radius: 8px; background: #F0F9FF; border: 1px solid #BAE6FD; }
+  .cost-bar-wrap .label { font-size: 13px; font-weight: 600; color: #374151; white-space: nowrap; }
+  .cost-bar-wrap .formula { font-size: 11px; color: #6B7280; }
+  .cost-bar-wrap .value { font-size: 18px; font-weight: 700; color: #1D4ED8; font-family: monospace; }
+</style>
+</head>
+<body>
+<div class="max-w-[1520px] mx-auto py-8 px-4">
+
+  <div class="text-center mb-8">
+    <h1 class="text-3xl font-bold text-gray-800 tracking-tight">项目立项预算表</h1>
+    <p class="text-gray-400 text-sm mt-2">在线填写立项金额与 KPI 需求，一键导出 Excel</p>
+  </div>
+
+  <!-- Basic Info -->
+  <div class="card p-6 mb-6">
+    <!-- Row 1: 一级产品 | 项目名称 | 开始日期 | 截止日期 -->
+    <div class="info-row">
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-2">🎯 一级产品（项目类型）</label>
+        <select id="productType" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none form-select bg-white transition" onchange="updateFileName()">
+          <option value="">请选择</option>
+          <option>图文平台代运营</option>
+          <option>视频平台代运营</option>
+          <option>图文内容制作</option>
+          <option>视频内容制作</option>
+          <option>内容营销矩阵</option>
+          <option>品效增长</option>
+          <option>传播</option>
+          <option>直播</option>
+          <option>海外代运营</option>
+          <option>其他</option>
+          <option>洞察力</option>
+          <option>影响力</option>
+          <option>视频代运营</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-2">📌 项目名称</label>
+        <input id="projectName" type="text" placeholder="请输入项目名称"
+          class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition"
+          oninput="updateFileName()">
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-2">📅 项目开始日期</label>
+        <input id="startDate" type="date"
+          class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition"
+          oninput="updateFileName()">
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-2">📅 项目截止日期</label>
+        <input id="endDate" type="date"
+          class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition"
+          oninput="updateFileName()">
+      </div>
+    </div>
+    <!-- Row 2: 毛利率 | 合同金额 | 实际成本条(跨2) -->
+    <div class="info-row-2">
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-2">📈 立项毛利率（%）</label>
+        <input id="marginRate" type="number" placeholder="例如 25" min="0" max="100" step="0.01"
+          class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none text-right font-mono transition"
+          oninput="recalcAll()">
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-2">💰 项目合同收入金额（元）</label>
+        <input id="contractAmount" type="number" placeholder="0.00" min="0" step="0.01"
+          class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none text-right font-mono transition"
+          oninput="recalcAll()">
+      </div>
+      <div>
+        <div id="actualCostBar" class="cost-bar-wrap" style="display:none;height:100%">
+          <div>
+            <span class="label">实际成本</span>
+            <span class="formula">（合同金额 ÷ 1.06 × (1 - 毛利率)）</span>
+          </div>
+          <span id="actualCostValue" class="value">¥0.00</span>
+          <div class="ml-auto flex items-center gap-2" id="costDiffValidation"></div>
+        </div>
+      </div>
+    </div>
+    <!-- Row 3: 命名预览 -->
+    <div class="info-row-3">
+      <label class="block text-sm font-semibold text-gray-700 mb-2">📝 项目预算表格命名预览</label>
+      <div id="fileNamePreview" class="w-full px-4 py-3 rounded-lg text-sm font-mono border min-h-[46px] flex items-center"
+        style="background:#F8FAFC;color:#94A3B8;border-color:#E2E8F0;cursor:default;user-select:all">
+        请先填写项目信息...
+      </div>
+    </div>
+  </div>
+
+  <!-- KPI Section -->
+  <div class="card p-6 mb-6">
+    <div class="flex items-center justify-between mb-4">
+      <div class="section-badge">KPI 指标表</div>
+      <div class="flex items-center gap-3">
+        <span class="tip"><span class="tip-dot" style="background:#FFFBEB;border:1px solid #FDE68A"></span>可编辑</span>
+        <span class="tip"><span class="tip-dot" style="background:#F1F5F9"></span>自动计算</span>
+      </div>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="tbl" id="kpiTable">
+        <thead>
+          <tr>
+            <th style="width:36px">#</th>
+            <th style="min-width:120px">指标名称</th>
+            <th style="min-width:100px">合同要求</th>
+            <th style="min-width:90px">KPI权重占比</th>
+            <th style="min-width:110px">权重金额（元）</th>
+            <th style="width:36px"></th>
+          </tr>
+        </thead>
+        <tbody id="kpiBody"></tbody>
+        <tfoot>
+          <tr class="row-total">
+            <td class="kpi-calc text-center" colspan="2" style="font-weight:600">合 计</td>
+            <td></td>
+            <td class="kpi-calc" id="kpiWeightTotal" style="font-weight:600">0.00%</td>
+            <td class="kpi-calc" id="kpiAmountTotal" style="font-weight:600">¥0.00</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <div class="flex items-center justify-between mt-4">
+      <button class="add-row" onclick="addKpiRow()">＋ 添加指标</button>
+      <div id="kpiValidation" class="flex items-center gap-3"></div>
+    </div>
+  </div>
+
+  <!-- Cost Section -->
+  <div class="card p-6 mb-6">
+    <div class="flex items-center justify-between mb-4">
+      <div class="section-badge">成本预算表</div>
+      <div class="flex items-center gap-4">
+        <span class="tip"><span class="tip-dot" style="background:#FFFBEB;border:1px solid #FDE68A"></span>可编辑</span>
+        <span class="tip"><span class="tip-dot" style="background:#F1F5F9"></span>自动计算</span>
+        <span class="text-xs text-gray-400">单位：元</span>
+      </div>
+    </div>
+    <div class="overflow-x-auto">
+      <div class="cost-wrap">
+        <table class="tbl" id="costTable">
+          <thead>
+            <tr>
+              <th class="cost-header-type" rowspan="2">成本类型</th>
+              <th class="cost-header-time" colspan="12">时 间</th>
+              <th class="cost-header-total" rowspan="2">合计</th>
+              <th class="cost-header-note" rowspan="2">备注</th>
+            </tr>
+            <tr>
+              <th class="cost-header-month">第1个月</th>
+              <th class="cost-header-month">第2个月</th>
+              <th class="cost-header-month">第3个月</th>
+              <th class="cost-header-month">第4个月</th>
+              <th class="cost-header-month">第5个月</th>
+              <th class="cost-header-month">第6个月</th>
+              <th class="cost-header-month">第7个月</th>
+              <th class="cost-header-month">第8个月</th>
+              <th class="cost-header-month">第9个月</th>
+              <th class="cost-header-month">第10个月</th>
+              <th class="cost-header-month">第11个月</th>
+              <th class="cost-header-month">第12个月</th>
+            </tr>
+          </thead>
+          <tbody id="costBody"></tbody>
+          <tfoot>
+            <tr class="row-total">
+              <td class="cost-row-header" style="text-align:center;font-weight:700">合 计</td>
+              <td class="cost-calc" id="cc1"></td><td class="cost-calc" id="cc2"></td><td class="cost-calc" id="cc3"></td>
+              <td class="cost-calc" id="cc4"></td><td class="cost-calc" id="cc5"></td><td class="cost-calc" id="cc6"></td>
+              <td class="cost-calc" id="cc7"></td><td class="cost-calc" id="cc8"></td><td class="cost-calc" id="cc9"></td>
+              <td class="cost-calc" id="cc10"></td><td class="cost-calc" id="cc11"></td><td class="cost-calc" id="cc12"></td>
+              <td class="cost-calc" style="font-weight:700" id="ccTotal"></td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    <!-- 成本提示栏 -->
+    <div id="costSummaryBar" class="mt-4 p-4 rounded-lg border" style="background:#F0F9FF;border-color:#BAE6FD;display:none;">
+      <div class="flex items-center justify-between flex-wrap gap-3">
+        <div class="flex items-center gap-4 flex-wrap">
+          <div>
+            <div class="text-xs text-gray-500 mb-1">实际成本（合同金额 ÷ 1.06 × (1 - 毛利率)）</div>
+            <div id="costSummaryActual" class="text-xl font-bold text-blue-700 font-mono">¥0.00</div>
+          </div>
+          <div class="text-gray-300 text-2xl hidden sm:block">|</div>
+          <div>
+            <div class="text-xs text-gray-500 mb-1">当前成本合计</div>
+            <div id="costSummaryCurrent" class="text-xl font-bold text-gray-700 font-mono">¥0.00</div>
+          </div>
+          <div class="text-gray-300 text-2xl hidden sm:block">|</div>
+          <div>
+            <div class="text-xs text-gray-500 mb-1">差额</div>
+            <div id="costSummaryDiff" class="text-xl font-bold font-mono">¥0.00</div>
+          </div>
+        </div>
+        <div id="costSummaryBadge"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="text-center py-8">
+    <button class="btn-main" onclick="generateExcel()">📊 生成 Excel 文件</button>
+    <p class="text-xs text-gray-400 mt-3">生成格式与立项附件模板一致的 .xlsx 文件</p>
+  </div>
+</div>
+
+<script>
+const PRESET_KPIS = [
+  '拍摄次数','短视频数','爆款视频数','文章数','粉丝数',
+  '播放量','完播率','互动量','阅读量','培训场次','直播场次','达人招募数'
+];
+const COST_TYPES = [
+  { name: '外部分包成本', note: '包含主播、演员、写手、摄影等外协人员以及其他外部分包成本' },
+  { name: '运营服务成本', note: '' },
+  { name: '投流成本', note: '投流平台充值的费用' },
+  { name: '媒介成本', note: '从蒲公英、星图等平台下单达人的成本' },
+  { name: '其他成本', note: '除其他5项成本以外的归到这一类' },
+  { name: '人力成本', note: '' }
+];
+
+let kpiRows = [];
+let kpiIdCounter = 0;
+
+const fmt = v => v.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmtY = v => `¥${fmt(v)}`;
+
+function initKpi() {
+  kpiRows = PRESET_KPIS.map(name => ({ id: kpiIdCounter++, name, contract: '', weight: '' }));
+  renderKpi();
+}
+
+function renderKpi() {
+  const tbody = document.getElementById('kpiBody');
+  tbody.innerHTML = '';
+  kpiRows.forEach((row, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="kpi-seq">${i + 1}</td>
+      <td><input type="text" value="${esc(row.name)}" class="kpi-name" placeholder="指标名称"
+        onchange="kpiRows[${i}].name=this.value"></td>
+      <td><input type="text" value="${esc(row.contract)}" class="kpi-edit" placeholder="填写"
+        oninput="kpiRows[${i}].contract=this.value"></td>
+      <td><input type="number" value="${row.weight}" class="kpi-edit" placeholder="%" step="0.01" min="0" max="100"
+        oninput="kpiRows[${i}].weight=this.value; recalcAll()"></td>
+      <td class="kpi-calc" id="kpiAmt${i}">¥0.00</td>
+      <td class="kpi-seq"><span class="del-btn" onclick="delKpi(${i})" title="删除此行">×</span></td>`;
+    tbody.appendChild(tr);
+  });
+  recalcAll();
+}
+
+function addKpiRow() {
+  kpiRows.push({ id: kpiIdCounter++, name: '', contract: '', weight: '' });
+  renderKpi();
+}
+
+function delKpi(i) {
+  kpiRows.splice(i, 1);
+  renderKpi();
+}
+
+function esc(s) { return (s || '').replace(/"/g, '&quot;'); }
+
+function getFileName() {
+  const productType = document.getElementById('productType').value || '';
+  const projectName = document.getElementById('projectName').value || '';
+  const startVal = document.getElementById('startDate').value;
+  const endVal = document.getElementById('endDate').value;
+  const fmtYM = d => {
+    if (!d) return '';
+    const dt = new Date(d);
+    const y = String(dt.getFullYear()).slice(-2);
+    const m = String(dt.getMonth() + 1).padStart(2, '0');
+    return `${y}.${m}`;
+  };
+  const startYM = fmtYM(startVal);
+  const endYM = fmtYM(endVal);
+  const parts = [];
+  if (productType) parts.push(productType);
+  if (projectName) parts.push(projectName);
+  if (startYM || endYM) parts.push(`${startYM || '??'}-${endYM || '??'}`);
+  if (parts.length === 0) return '';
+  return parts.join('-') + '项目预算表格';
+}
+
+function updateFileName() {
+  const el = document.getElementById('fileNamePreview');
+  const name = getFileName();
+  if (name) {
+    el.textContent = name;
+    el.style.color = '#1E293B';
+    el.style.background = '#F0FDF4';
+    el.style.borderColor = '#86EFAC';
+  } else {
+    el.textContent = '请先填写项目信息...';
+    el.style.color = '#94A3B8';
+    el.style.background = '#F8FAFC';
+    el.style.borderColor = '#E2E8F0';
+  }
+}
+
+function initCost() {
+  const tbody = document.getElementById('costBody');
+  tbody.innerHTML = '';
+  COST_TYPES.forEach((ct, ri) => {
+    const tr = document.createElement('tr');
+    tr.className = ri % 2 === 0 ? 'cost-row-even' : 'cost-row-odd';
+    let h = `<td class="cost-row-header">${ct.name}</td>`;
+    for (let m = 1; m <= 12; m++) {
+      h += `<td><input type="number" class="cost-input" placeholder="0" min="0" step="0.01"
+        id="c${ri}_${m}" oninput="recalcCost()"></td>`;
+    }
+    h += `<td class="cost-calc" id="crt${ri}">¥0.00</td>`;
+    h += `<td class="cost-note">${ct.note || '-'}</td>`;
+    tr.innerHTML = h;
+    tbody.appendChild(tr);
+  });
+}
+
+function recalcAll() {
+  const amt = parseFloat(document.getElementById('contractAmount').value) || 0;
+  let wSum = 0, aSum = 0;
+  kpiRows.forEach((row, i) => {
+    const w = parseFloat(row.weight) || 0;
+    wSum += w;
+    const calc = amt * (w / 100);
+    aSum += calc;
+    const el = document.getElementById(`kpiAmt${i}`);
+    if (el) el.textContent = fmtY(calc);
+  });
+  document.getElementById('kpiWeightTotal').textContent = `${wSum.toFixed(2)}%`;
+  document.getElementById('kpiAmountTotal').textContent = fmtY(aSum);
+
+  const box = document.getElementById('kpiValidation');
+  const wOk = Math.abs(wSum - 100) < 0.01;
+  const aOk = amt > 0 && Math.abs(aSum - amt) < 0.01;
+  let h = '';
+  if (wSum === 0) h += '<span class="badge-wait">⏳ 权重待填写</span>';
+  else if (wOk) h += '<span class="badge-ok">✓ 权重合计 = 100%</span>';
+  else h += `<span class="badge-err">✗ 权重合计 ${wSum.toFixed(2)}% ≠ 100%</span>`;
+  if (aSum === 0 && amt === 0) h += '<span class="badge-wait">⏳ 金额待填写</span>';
+  else if (amt > 0 && aOk) h += '<span class="badge-ok">✓ 金额合计 = 合同收入</span>';
+  else if (amt > 0) h += `<span class="badge-err">✗ 金额合计 ≠ 合同收入（差 ${fmtY(aSum - amt)}）</span>`;
+  box.innerHTML = h;
+  recalcCost();
+}
+
+function recalcCost() {
+  const colSums = Array(12).fill(0);
+  let grand = 0;
+  COST_TYPES.forEach((_, ri) => {
+    let rowT = 0;
+    for (let m = 0; m < 12; m++) {
+      const el = document.getElementById(`c${ri}_${m+1}`);
+      const v = el ? (parseFloat(el.value) || 0) : 0;
+      colSums[m] += v;
+      rowT += v;
+    }
+    const crtEl = document.getElementById(`crt${ri}`);
+    if (crtEl) crtEl.textContent = fmtY(rowT);
+    grand += rowT;
+  });
+  for (let m = 0; m < 12; m++) {
+    const ccEl = document.getElementById(`cc${m+1}`);
+    if (ccEl) ccEl.textContent = fmtY(colSums[m]);
+  }
+  const ccTotalEl = document.getElementById('ccTotal');
+  if (ccTotalEl) ccTotalEl.textContent = fmtY(grand);
+
+  const amt = parseFloat(document.getElementById('contractAmount').value) || 0;
+  const margin = parseFloat(document.getElementById('marginRate').value) || 0;
+  const actualCost = amt / 1.06 * (1 - margin / 100);
+
+  const bar = document.getElementById('actualCostBar');
+  const valEl = document.getElementById('actualCostValue');
+  const diffBox = document.getElementById('costDiffValidation');
+
+  if (amt > 0 && margin > 0) {
+    bar.style.display = 'flex';
+    valEl.textContent = fmtY(actualCost);
+    const diff = grand - actualCost;
+    const absDiff = Math.abs(diff);
+    const match = absDiff < 0.01;
+    if (match) diffBox.innerHTML = '<span class="badge-ok">✓ 成本合计 = 实际成本</span>';
+    else diffBox.innerHTML = `<span class="badge-err">✗ 差 ${fmtY(diff)}</span>`;
+  } else {
+    bar.style.display = 'none';
+    diffBox.innerHTML = '';
+  }
+
+  /* --- 更新成本表下方的提示栏 --- */
+  const summaryBar = document.getElementById('costSummaryBar');
+  const summaryActual = document.getElementById('costSummaryActual');
+  const summaryCurrent = document.getElementById('costSummaryCurrent');
+  const summaryDiff = document.getElementById('costSummaryDiff');
+  const summaryBadge = document.getElementById('costSummaryBadge');
+
+  if (amt > 0 && margin > 0) {
+    summaryBar.style.display = 'block';
+    summaryActual.textContent = fmtY(actualCost);
+    summaryCurrent.textContent = fmtY(grand);
+    const diff = grand - actualCost;
+    summaryDiff.textContent = (diff >= 0 ? '+' : '') + fmtY(diff);
+    summaryDiff.style.color = Math.abs(diff) < 0.01 ? '#16A34A' : (diff > 0 ? '#DC2626' : '#2563EB');
+    if (Math.abs(diff) < 0.01) {
+      summaryBadge.innerHTML = '<span class="badge-ok">✓ 成本合计 = 实际成本</span>';
+    } else if (diff > 0) {
+      summaryBadge.innerHTML = '<span class="badge-err">✗ 超出实际成本 ' + fmtY(diff) + '</span>';
+    } else {
+      summaryBadge.innerHTML = '<span class="badge-wait">⏳ 低于实际成本 ' + fmtY(Math.abs(diff)) + '</span>';
+    }
+  } else {
+    summaryBar.style.display = 'none';
+  }
+}
+
+function generateExcel() {
+  const projectName = document.getElementById('projectName').value || '未命名项目';
+  const startDate = document.getElementById('startDate').value || '';
+  const endDate = document.getElementById('endDate').value || '';
+  const productType = document.getElementById('productType').value || '';
+  const contractAmount = parseFloat(document.getElementById('contractAmount').value) || 0;
+  const marginRate = parseFloat(document.getElementById('marginRate').value) || 0;
+  const ws = {};
+
+  const cell = (r,c) => XLSX.utils.encode_cell({r,c});
+  const sv = (r,c,v) => { ws[cell(r,c)] = typeof v==='number' ? {t:'n',v} : {t:'s',v:String(v)}; };
+  const sn = (r,c,v,z) => { ws[cell(r,c)] = {t:'n',v,z:z||'0.00%'}; };
+  const sf = (r,c,f) => { ws[cell(r,c)] = {t:'n',f,v:0}; };
+
+  const costNotes = [
+    '包含主播、演员、写手、摄影等外协人员以及其他外部分包成本',
+    '', '投流平台充值的费用', '从蒲公英、星图等平台下单达人的成本',
+    '除其他5项成本以外的归到这一类', ''
+  ];
+
+  /* --- Row 0 (Excel 1): Headers --- */
+  sv(0,0,'指标名称'); sv(0,1,'合同要求（手动填写）');
+  sv(0,2,'KPI权重占比（手动填写）'); sv(0,3,'各指标权重金额（公式）');
+  sv(0,4,'项目合同收入金额'); sv(0,5,'成本类型'); sv(0,6,'时间');
+
+  /* --- Row 1 (Excel 2): KPI[0] + Month headers --- */
+  sv(1,0, kpiRows[0]?.name || '');
+  sv(1,1, kpiRows[0]?.contract || '');
+  if (kpiRows.length>0 && kpiRows[0].weight) sn(1,2, parseFloat(kpiRows[0].weight)/100);
+  sf(1,3, 'C2*$E$2');
+  sn(1,4, contractAmount, '#,##0.00');
+  for (let m=0;m<12;m++) sv(1,6+m, `第${m+1}个月`);
+  sv(1,18,'合计');
+  const infoParts = [];
+  if (startDate || endDate) infoParts.push(`日期:${startDate||'?'}~${endDate||'?'}`);
+  if (productType) infoParts.push(`产品:${productType}`);
+  if (marginRate > 0) infoParts.push(`毛利率:${marginRate}%`);
+  sv(1,19, infoParts.length ? infoParts.join(' | ') : '备注');
+
+  /* --- Rows 2-7 (Excel 3-8): KPI[1-6] + Cost[0-5] --- */
+  for (let i=1; i<=6; i++) {
+    const r = 1+i, er = r+1, ci = i-1;
+    sv(r,0, kpiRows[i]?.name || '');
+    sv(r,1, kpiRows[i]?.contract || '');
+    if (i<kpiRows.length && kpiRows[i].weight) sn(r,2, parseFloat(kpiRows[i].weight)/100);
+    sf(r,3, `C${er}*$E$2`);
+    sv(r,5, COST_TYPES[ci].name);
+    for (let m=0;m<12;m++) {
+      const v = parseFloat(document.getElementById(`c${ci}_${m+1}`).value) || 0;
+      if (v) sn(r,6+m, v, '#,##0.00');
+    }
+    sf(r,18, `SUM(G${er}:R${er})`);
+    if (costNotes[ci]) sv(r,19, costNotes[ci]);
+  }
+
+  /* --- Row 8 (Excel 9): KPI[7] + Cost totals --- */
+  sv(8,0, kpiRows[7]?.name || '');
+  sv(8,1, kpiRows[7]?.contract || '');
+  if (kpiRows.length>7 && kpiRows[7].weight) sn(8,2, parseFloat(kpiRows[7].weight)/100);
+  if (kpiRows.length>7) sf(8,3, 'C9*$E$2');
+  sv(8,5,'合计');
+  for (let m=0;m<12;m++) {
+    const cl = String.fromCharCode(71+m);
+    sf(8,6+m, `SUM(${cl}3:${cl}8)`);
+  }
+  sf(8,18, 'SUM(G9:R9)');
+
+  /* --- Rows 9+ (Excel 10+): KPI[8+] --- */
+  for (let i=8; i<kpiRows.length; i++) {
+    const r = 1+i, er = r+1;
+    sv(r,0, kpiRows[i].name || '');
+    sv(r,1, kpiRows[i].contract || '');
+    if (kpiRows[i].weight) sn(r,2, parseFloat(kpiRows[i].weight)/100);
+    sf(r,3, `C${er}*$E$2`);
+  }
+
+  /* --- Pad to row 19 --- */
+  const lastDataR0 = Math.max(kpiRows.length + 1, 19);
+  for (let r = kpiRows.length + 1; r < lastDataR0; r++) {
+    sf(r, 3, `C${r+1}*$E$2`);
+  }
+  if (kpiRows.length + 1 < lastDataR0) sv(lastDataR0-1, 0, '......');
+
+  /* --- Total row --- */
+  const totalR0 = lastDataR0;
+  const totalR1 = totalR0 + 1;
+  sf(totalR0, 2, `SUM(C2:C${lastDataR0})`);
+  sf(totalR0, 3, `SUM(D2:D${lastDataR0})`);
+
+  /* --- Check row --- */
+  const checkR0 = totalR0 + 1;
+  sv(checkR0,0,'检验');
+  sn(checkR0,2,0,'#,##0'); sn(checkR0,3,0,'#,##0');
+
+  /* --- Error check row --- */
+  const errR0 = totalR0 + 2;
+  sv(errR0,0,'错误提示');
+  sf(errR0,2, `IF(C${totalR1}=1,"正确","合计比例不等于100%")`);
+  sf(errR0,3, `IF(D${totalR1}=E2,"正确","合计金额不等于合同收入金额")`);
+  sv(errR0,19,'只填写黄色的格子！');
+
+  /* --- Sheet config --- */
+  ws['!ref'] = XLSX.utils.encode_range({s:{r:0,c:0},e:{r:errR0,c:19}});
+  ws['!merges'] = [
+    {s:{r:0,c:6},e:{r:0,c:18}},
+    {s:{r:0,c:5},e:{r:1,c:5}},
+  ];
+  ws['!cols'] = [
+    {wch:9},{wch:9},{wch:9},{wch:14},{wch:13},{wch:13},
+    {wch:8},{wch:8},{wch:8},{wch:8},{wch:8},{wch:8},
+    {wch:8},{wch:8},{wch:8},{wch:8},{wch:8},{wch:8},
+    {wch:16},{wch:50}
+  ];
+  ws['!rows'] = [{hpt:29},{hpt:23}];
+
+  /* --- Apply borders to all cells --- */
+  const thin = { style: 'thin', color: { rgb: '000000' } };
+  const borderAll = { top: thin, bottom: thin, left: thin, right: thin };
+  for (const key in ws) {
+    if (key[0] === '!') continue;
+    if (!ws[key].s) ws[key].s = {};
+    ws[key].s.border = borderAll;
+  }
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, '项目立项预算');
+  const fileName = getFileName() || `${projectName}_立项预算表`;
+  XLSX.writeFile(wb, `${fileName}.xlsx`);
+}
+
+initKpi();
+initCost();
+</script>
+</body>
+</html>
