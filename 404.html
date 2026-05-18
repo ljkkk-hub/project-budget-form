@@ -7,89 +7,399 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;900&display=swap');
   * { box-sizing: border-box; }
-  body { font-family: 'Noto Sans SC', -apple-system, sans-serif; background: #F0F4F8; margin: 0; }
-  .card { background: #fff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  body { font-family: 'Noto Sans SC', -apple-system, sans-serif; background: #f5f7fa; margin: 0; }
 
+  /* ========== 头部 ========== */
+  .hero {
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 40%, #2563eb 100%);
+    color: #fff;
+    padding: 48px 24px 56px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -20%;
+    width: 60%;
+    height: 200%;
+    background: radial-gradient(ellipse at center, rgba(255,255,255,0.08) 0%, transparent 70%);
+    transform: rotate(-15deg);
+  }
+  .hero h1 {
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    margin: 0 0 10px;
+    position: relative;
+    z-index: 1;
+  }
+  .hero .subtitle {
+    font-size: 15px;
+    color: rgba(255,255,255,0.7);
+    font-weight: 400;
+    position: relative;
+    z-index: 1;
+  }
+  .hero .badge-bar {
+    display: inline-flex;
+    gap: 16px;
+    margin-top: 18px;
+    position: relative;
+    z-index: 1;
+  }
+  .hero .badge-bar span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.85);
+    background: rgba(255,255,255,0.1);
+    padding: 5px 14px;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.15);
+    backdrop-filter: blur(4px);
+  }
+
+  /* ========== 容器 ========== */
+  .container { max-width: 1480px; margin: 0 auto; padding: 32px 24px 60px; }
+
+  /* ========== 卡片 ========== */
+  .card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03);
+    border: 1px solid #e8ecf1;
+    overflow: hidden;
+  }
+  .card + .card { margin-top: 28px; }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 28px;
+    border-bottom: 1px solid #f1f3f6;
+    background: #fafbfd;
+  }
+  .card-header .title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 17px;
+    font-weight: 700;
+    color: #1e293b;
+  }
+  .card-header .title .icon {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .card-body { padding: 28px; }
+
+  /* ========== 表单 ========== */
+  .form-group { margin-bottom: 22px; }
+  .form-group:last-child { margin-bottom: 0; }
+  .form-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 7px;
+    letter-spacing: 0.02em;
+  }
+  .form-label .required { color: #dc2626; margin-left: 2px; }
+  .form-input, .form-select {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 14px;
+    color: #1e293b;
+    background: #fff;
+    transition: all .15s ease;
+    outline: none;
+    font-family: inherit;
+  }
+  .form-input:focus, .form-select:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+  }
+  .form-input::placeholder { color: #cbd5e1; }
+  .form-select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='%2364748b' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 34px;
+  }
+  .form-input-number { text-align: right; font-family: 'Noto Sans SC', monospace; }
+
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .grid-2-3 { display: grid; grid-template-columns: 1fr 1fr 2fr; gap: 24px; }
+
+  /* ========== 实际成本条 ========== */
+  .cost-summary-card {
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    border: 1.5px solid #93c5fd;
+    border-radius: 12px;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    min-height: 68px;
+  }
+  .cost-summary-card .label { font-size: 13px; font-weight: 600; color: #374151; }
+  .cost-summary-card .formula { font-size: 11px; color: #6b7280; }
+  .cost-summary-card .value { font-size: 22px; font-weight: 800; color: #1d4ed8; font-family: 'Noto Sans SC', monospace; letter-spacing: -0.5px; }
+
+  /* ========== 命名预览 ========== */
+  .filename-preview {
+    width: 100%;
+    padding: 14px 18px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-family: 'Noto Sans SC', monospace;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    border: 1.5px dashed #cbd5e1;
+    background: #f8fafc;
+    color: #94a3b8;
+    transition: all .2s ease;
+    cursor: default;
+    user-select: all;
+  }
+  .filename-preview.ready {
+    background: #f0fdf4;
+    border-color: #86efac;
+    border-style: solid;
+    color: #1e293b;
+  }
+
+  /* ========== 表格 ========== */
   .tbl { border-collapse: collapse; width: 100%; }
-  .tbl th { background: #1E3A5F; color: #fff; font-weight: 600; font-size: 12px; padding: 9px 6px; text-align: center; white-space: nowrap; }
-  .tbl td { border: 1px solid #E2E8F0; padding: 0; font-size: 13px; vertical-align: middle; }
+  .tbl th {
+    background: #1e3a5f;
+    color: #fff;
+    font-weight: 600;
+    font-size: 12px;
+    padding: 11px 8px;
+    text-align: center;
+    white-space: nowrap;
+    border: 1px solid #1e3a5f;
+  }
+  .tbl td { border: 1px solid #e2e8f0; padding: 0; font-size: 13px; vertical-align: middle; }
 
-  .kpi-edit { background: #FFFBEB; text-align: center; border: none; outline: none; width: 100%; padding: 7px 4px; font-size: 13px; font-family: inherit; }
-  .kpi-edit:focus { background: #FEF3C7; box-shadow: inset 0 0 0 2px #F59E0B; }
-  .kpi-name { background: #F8FAFC; text-align: left; padding-left: 10px; font-weight: 500; border: none; outline: none; width: 100%; padding: 7px 4px 7px 10px; font-size: 13px; font-family: inherit; }
-  .kpi-name:focus { background: #EFF6FF; }
-  .kpi-calc { background: #F1F5F9; text-align: center; padding: 7px 6px; color: #475569; font-variant-numeric: tabular-nums; }
-  .kpi-seq { background: #F8FAFC; text-align: center; color: #94A3B8; font-size: 12px; padding: 7px 4px; }
+  .kpi-edit {
+    background: #fffbeb;
+    text-align: center;
+    border: none;
+    outline: none;
+    width: 100%;
+    padding: 8px 6px;
+    font-size: 13px;
+    font-family: inherit;
+    transition: background .1s;
+  }
+  .kpi-edit:focus { background: #fef3c7; box-shadow: inset 0 0 0 2px #f59e0b; }
+  .kpi-name {
+    background: #f8fafc;
+    text-align: left;
+    padding-left: 14px;
+    font-weight: 500;
+    border: none;
+    outline: none;
+    width: 100%;
+    padding: 8px 6px 8px 14px;
+    font-size: 13px;
+    font-family: inherit;
+    transition: background .1s;
+  }
+  .kpi-name:focus { background: #eff6ff; }
+  .kpi-calc {
+    background: #f1f5f9;
+    text-align: center;
+    padding: 8px 8px;
+    color: #475569;
+    font-variant-numeric: tabular-nums;
+    font-size: 13px;
+  }
+  .kpi-seq {
+    background: #f8fafc;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 12px;
+    padding: 8px 6px;
+  }
 
   .cost-wrap { min-width: 1280px; }
-  .cost-row-header { background: #F8FAFC; font-weight: 600; font-size: 13px; padding: 8px 12px; white-space: nowrap; text-align: left; border: 1px solid #E2E8F0; min-width: 120px; }
-  .cost-input { background: #FFF8E1; text-align: right; border: none; outline: none; width: 100%; padding: 7px 6px; font-size: 13px; font-family: inherit; font-variant-numeric: tabular-nums; color: #1E293B; }
-  .cost-input:focus { background: #FFECB3; box-shadow: inset 0 0 0 2px #F59E0B; }
-  .cost-input::placeholder { color: #CBD5E1; text-align: center; }
-  .cost-calc { background: #F1F5F9; text-align: right; padding: 7px 8px; color: #475569; font-variant-numeric: tabular-nums; font-weight: 500; border: 1px solid #E2E8F0; font-size: 13px; }
-  .cost-note { font-size: 11px; color: #64748B; line-height: 1.5; padding: 8px 12px; border: 1px solid #E2E8F0; max-width: 260px; }
+  .cost-row-header {
+    background: #f8fafc;
+    font-weight: 600;
+    font-size: 13px;
+    padding: 9px 14px;
+    white-space: nowrap;
+    text-align: left;
+    border: 1px solid #e2e8f0;
+    min-width: 120px;
+  }
+  .cost-input {
+    background: #fff8e1;
+    text-align: right;
+    border: none;
+    outline: none;
+    width: 100%;
+    padding: 8px 8px;
+    font-size: 13px;
+    font-family: inherit;
+    font-variant-numeric: tabular-nums;
+    color: #1e293b;
+    transition: background .1s;
+  }
+  .cost-input:focus { background: #ffecb3; box-shadow: inset 0 0 0 2px #f59e0b; }
+  .cost-input::placeholder { color: #cbd5e1; text-align: center; }
+  .cost-calc {
+    background: #f1f5f9;
+    text-align: right;
+    padding: 8px 10px;
+    color: #475569;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    border: 1px solid #e2e8f0;
+    font-size: 13px;
+  }
+  .cost-note {
+    font-size: 11px;
+    color: #64748b;
+    line-height: 1.5;
+    padding: 8px 14px;
+    border: 1px solid #e2e8f0;
+    max-width: 260px;
+  }
 
-  .cost-header-type { background: #1E3A5F; color: #fff; font-weight: 600; font-size: 12px; padding: 9px 10px; text-align: left; white-space: nowrap; border: 1px solid #1E3A5F; }
-  .cost-header-time { background: #1E3A5F; color: #fff; font-weight: 600; font-size: 12px; padding: 9px 4px; text-align: center; white-space: nowrap; border: 1px solid #1E3A5F; }
-  .cost-header-month { background: #1E3A5F; color: #fff; font-weight: 600; font-size: 12px; padding: 9px 4px; text-align: center; white-space: nowrap; min-width: 76px; border: 1px solid #1E3A5F; }
-  .cost-header-total { background: #1E3A5F; color: #fff; font-weight: 600; font-size: 12px; padding: 9px 8px; text-align: center; white-space: nowrap; min-width: 90px; border: 1px solid #1E3A5F; }
-  .cost-header-note { background: #1E3A5F; color: #fff; font-weight: 600; font-size: 12px; padding: 9px 10px; text-align: left; white-space: nowrap; min-width: 180px; border: 1px solid #1E3A5F; }
+  .cost-header-type { background: #1e3a5f; color: #fff; font-weight: 600; font-size: 12px; padding: 10px 12px; text-align: left; white-space: nowrap; border: 1px solid #1e3a5f; }
+  .cost-header-time { background: #1e3a5f; color: #fff; font-weight: 600; font-size: 12px; padding: 10px 4px; text-align: center; white-space: nowrap; border: 1px solid #1e3a5f; }
+  .cost-header-month { background: #1e3a5f; color: #fff; font-weight: 600; font-size: 12px; padding: 10px 4px; text-align: center; white-space: nowrap; min-width: 76px; border: 1px solid #1e3a5f; }
+  .cost-header-total { background: #1e3a5f; color: #fff; font-weight: 600; font-size: 12px; padding: 10px 8px; text-align: center; white-space: nowrap; min-width: 90px; border: 1px solid #1e3a5f; }
+  .cost-header-note { background: #1e3a5f; color: #fff; font-weight: 600; font-size: 12px; padding: 10px 12px; text-align: left; white-space: nowrap; min-width: 180px; border: 1px solid #1e3a5f; }
 
-  .row-total td { background: #EEF2FF !important; font-weight: 600; }
-  .row-total .cost-row-header { background: #EEF2FF !important; }
-  .cost-row-even { background: #FAFBFF; }
-  .cost-row-odd  { background: #FFFFFF; }
-  .cost-row-even .cost-row-header { background: #F0F9FF; }
-  .cost-row-odd  .cost-row-header { background: #F8FAFC; }
+  .row-total td { background: #eef2ff !important; font-weight: 700; }
+  .row-total .cost-row-header { background: #eef2ff !important; }
+  .cost-row-even { background: #fafbff; }
+  .cost-row-odd  { background: #ffffff; }
+  .cost-row-even .cost-row-header { background: #f0f9ff; }
+  .cost-row-odd  .cost-row-header { background: #f8fafc; }
 
-  .section-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 700; color: #1E3A5F; }
-  .section-badge::before { content: ''; display: block; width: 4px; height: 18px; background: #2563EB; border-radius: 2px; }
-  .del-btn { opacity: 0; cursor: pointer; color: #CBD5E1; font-size: 16px; padding: 2px 6px; transition: all 0.15s; }
-  tr:hover .del-btn { opacity: 1; }
-  .del-btn:hover { color: #EF4444; }
-  .add-row { display: inline-flex; align-items: center; gap: 4px; color: #2563EB; font-size: 13px; font-weight: 500; padding: 6px 14px; border: 1.5px dashed #93C5FD; border-radius: 6px; background: #fff; cursor: pointer; transition: all 0.15s; }
-  .add-row:hover { background: #EFF6FF; border-color: #2563EB; }
-  .btn-main { background: linear-gradient(135deg, #1E3A5F 0%, #2563EB 100%); color: #fff; padding: 14px 48px; border-radius: 10px; font-size: 16px; font-weight: 700; border: none; cursor: pointer; transition: all 0.2s; letter-spacing: 0.03em; }
-  .btn-main:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(37,99,235,0.35); }
+  /* ========== 按钮 ========== */
+  .btn-main {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+    color: #fff;
+    padding: 16px 56px;
+    border-radius: 12px;
+    font-size: 17px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    transition: all .2s ease;
+    letter-spacing: 0.02em;
+    box-shadow: 0 4px 14px rgba(37,99,235,0.25);
+  }
+  .btn-main:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(37,99,235,0.35);
+  }
   .btn-main:active { transform: translateY(0); }
-  .badge-ok { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 500; color: #16A34A; background: #F0FDF4; padding: 3px 10px; border-radius: 20px; }
-  .badge-err { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 500; color: #DC2626; background: #FEF2F2; padding: 3px 10px; border-radius: 20px; }
-  .badge-wait { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 500; color: #9CA3AF; background: #F9FAFB; padding: 3px 10px; border-radius: 20px; }
-  .tip { font-size: 11px; color: #94A3B8; display: flex; align-items: center; gap: 4px; }
+
+  .add-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: #2563eb;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 16px;
+    border: 1.5px dashed #93c5fd;
+    border-radius: 8px;
+    background: #fff;
+    cursor: pointer;
+    transition: all .15s ease;
+  }
+  .add-row:hover { background: #eff6ff; border-color: #2563eb; color: #1e3a5f; }
+
+  .del-btn { opacity: 0; cursor: pointer; color: #cbd5e1; font-size: 18px; padding: 2px 6px; transition: all .15s; }
+  tr:hover .del-btn { opacity: 1; }
+  .del-btn:hover { color: #ef4444; }
+
+  /* ========== 徽章 ========== */
+  .badge-ok { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; color: #16a34a; background: #f0fdf4; padding: 5px 12px; border-radius: 20px; border: 1px solid #bbf7d0; }
+  .badge-err { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; color: #dc2626; background: #fef2f2; padding: 5px 12px; border-radius: 20px; border: 1px solid #fecaca; }
+  .badge-wait { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; color: #9ca3af; background: #f9fafb; padding: 5px 12px; border-radius: 20px; border: 1px solid #e5e7eb; }
+
+  .tip { font-size: 11px; color: #94a3b8; display: inline-flex; align-items: center; gap: 5px; }
   .tip-dot { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
 
   input[type="number"]::-webkit-inner-spin-button,
   input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
   input[type="number"] { -moz-appearance: textfield; }
 
-  .form-select { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2364748B' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+  /* ========== 成本表底部提示栏 ========== */
+  .cost-summary-bar {
+    margin-top: 20px;
+    padding: 18px 24px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border: 1.5px solid #93c5fd;
+  }
+  .cost-summary-bar .item-label { font-size: 12px; color: #64748b; margin-bottom: 4px; }
+  .cost-summary-bar .item-value { font-size: 20px; font-weight: 800; font-family: 'Noto Sans SC', monospace; }
 
-  .info-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
-  .info-row-2 { display: grid; grid-template-columns: 1fr 1fr 2fr; gap: 20px; margin-top: 20px; }
-  .info-row-3 { margin-top: 20px; }
-  .cost-bar-wrap { display: flex; align-items: center; gap: 16px; padding: 10px 16px; border-radius: 8px; background: #F0F9FF; border: 1px solid #BAE6FD; }
-  .cost-bar-wrap .label { font-size: 13px; font-weight: 600; color: #374151; white-space: nowrap; }
-  .cost-bar-wrap .formula { font-size: 11px; color: #6B7280; }
-  .cost-bar-wrap .value { font-size: 18px; font-weight: 700; color: #1D4ED8; font-family: monospace; }
+  @media (max-width: 1024px) {
+    .grid-4 { grid-template-columns: 1fr 1fr; }
+    .grid-3 { grid-template-columns: 1fr; }
+    .grid-2-3 { grid-template-columns: 1fr; }
+  }
 </style>
 </head>
 <body>
-<div class="max-w-[1520px] mx-auto py-8 px-4">
 
-  <div class="text-center mb-8">
-    <h1 class="text-3xl font-bold text-gray-800 tracking-tight">项目立项预算表</h1>
-    <p class="text-gray-400 text-sm mt-2">在线填写立项金额与 KPI 需求，一键导出 Excel</p>
+<!-- ===== 头部 ===== -->
+<div class="hero">
+  <h1>项目立项预算表</h1>
+  <p class="subtitle">在线填写立项金额与 KPI 需求，一键导出 Excel</p>
+  <div class="badge-bar">
+    <span>📊 实时计算</span>
+    <span>✅ 自动校验</span>
+    <span>📥 一键导出</span>
   </div>
+</div>
 
-  <!-- Basic Info -->
-  <div class="card p-6 mb-6">
+<div class="container">
+
+<!-- ===== 基础信息 ===== -->
+<div class="card">
+  <div class="card-header">
+    <div class="title">
+      <div class="icon" style="background:#dbeafe;color:#2563eb">📝</div>
+      基础信息
+    </div>
+  </div>
+  <div class="card-body">
     <!-- Row 1: 一级产品 | 项目名称 | 开始日期 | 截止日期 -->
-    <div class="info-row">
-      <div>
-        <label class="block text-sm font-semibold text-gray-700 mb-2">🎯 一级产品（项目类型）</label>
-        <select id="productType" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none form-select bg-white transition" onchange="updateFileName()">
+    <div class="grid-4">
+      <div class="form-group">
+        <label class="form-label">一级产品（项目类型）<span class="required">*</span></label>
+        <select id="productType" class="form-select form-input" onchange="updateFileName()">
           <option value="">请选择</option>
           <option>图文平台代运营</option>
           <option>视频平台代运营</option>
@@ -106,109 +416,111 @@
           <option>视频代运营</option>
         </select>
       </div>
-      <div>
-        <label class="block text-sm font-semibold text-gray-700 mb-2">📌 项目名称</label>
-        <input id="projectName" type="text" placeholder="请输入项目名称"
-          class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition"
-          oninput="updateFileName()">
+      <div class="form-group">
+        <label class="form-label">项目名称<span class="required">*</span></label>
+        <input id="projectName" type="text" placeholder="请输入项目名称" class="form-input" oninput="updateFileName()">
       </div>
-      <div>
-        <label class="block text-sm font-semibold text-gray-700 mb-2">📅 项目开始日期</label>
-        <input id="startDate" type="date"
-          class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition"
-          oninput="updateFileName()">
+      <div class="form-group">
+        <label class="form-label">项目开始日期<span class="required">*</span></label>
+        <input id="startDate" type="date" class="form-input" oninput="updateFileName()">
       </div>
-      <div>
-        <label class="block text-sm font-semibold text-gray-700 mb-2">📅 项目截止日期</label>
-        <input id="endDate" type="date"
-          class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition"
-          oninput="updateFileName()">
+      <div class="form-group">
+        <label class="form-label">项目截止日期<span class="required">*</span></label>
+        <input id="endDate" type="date" class="form-input" oninput="updateFileName()">
       </div>
     </div>
-    <!-- Row 2: 毛利率 | 合同金额 | 实际成本条(跨2) -->
-    <div class="info-row-2">
-      <div>
-        <label class="block text-sm font-semibold text-gray-700 mb-2">📈 立项毛利率（%）</label>
+
+    <!-- Row 2: 毛利率 | 合同金额 | 实际成本条 -->
+    <div class="grid-2-3" style="margin-top:4px">
+      <div class="form-group">
+        <label class="form-label">立项毛利率（%）</label>
         <input id="marginRate" type="number" placeholder="例如 25" min="0" max="100" step="0.01"
-          class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none text-right font-mono transition"
-          oninput="recalcAll()">
+          class="form-input form-input-number" oninput="recalcAll()">
       </div>
-      <div>
-        <label class="block text-sm font-semibold text-gray-700 mb-2">💰 项目合同收入金额（元）</label>
+      <div class="form-group">
+        <label class="form-label">项目合同收入金额（元）</label>
         <input id="contractAmount" type="number" placeholder="0.00" min="0" step="0.01"
-          class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none text-right font-mono transition"
-          oninput="recalcAll()">
+          class="form-input form-input-number" oninput="recalcAll()">
       </div>
-      <div>
-        <div id="actualCostBar" class="cost-bar-wrap" style="display:none;height:100%">
+      <div class="form-group">
+        <label class="form-label">实际成本参考</label>
+        <div id="actualCostBar" class="cost-summary-card" style="display:none">
           <div>
-            <span class="label">实际成本</span>
-            <span class="formula">（合同金额 ÷ 1.06 × (1 - 毛利率)）</span>
+            <div class="label">实际成本</div>
+            <div class="formula">合同金额 ÷ 1.06 × (1 − 毛利率)</div>
           </div>
           <span id="actualCostValue" class="value">¥0.00</span>
           <div class="ml-auto flex items-center gap-2" id="costDiffValidation"></div>
         </div>
       </div>
     </div>
+
     <!-- Row 3: 命名预览 -->
-    <div class="info-row-3">
-      <label class="block text-sm font-semibold text-gray-700 mb-2">📝 项目预算表格命名预览</label>
-      <div id="fileNamePreview" class="w-full px-4 py-3 rounded-lg text-sm font-mono border min-h-[46px] flex items-center"
-        style="background:#F8FAFC;color:#94A3B8;border-color:#E2E8F0;cursor:default;user-select:all">
-        请先填写项目信息...
-      </div>
+    <div class="form-group" style="margin-top:4px">
+      <label class="form-label">项目预算表格命名预览</label>
+      <div id="fileNamePreview" class="filename-preview">请先填写项目信息...</div>
     </div>
   </div>
+</div>
 
-  <!-- KPI Section -->
-  <div class="card p-6 mb-6">
-    <div class="flex items-center justify-between mb-4">
-      <div class="section-badge">KPI 指标表</div>
-      <div class="flex items-center gap-3">
-        <span class="tip"><span class="tip-dot" style="background:#FFFBEB;border:1px solid #FDE68A"></span>可编辑</span>
-        <span class="tip"><span class="tip-dot" style="background:#F1F5F9"></span>自动计算</span>
-      </div>
+<!-- ===== KPI 指标表 ===== -->
+<div class="card">
+  <div class="card-header">
+    <div class="title">
+      <div class="icon" style="background:#fef3c7;color:#d97706">📈</div>
+      KPI 指标表
     </div>
+    <div class="flex items-center gap-4">
+      <span class="tip"><span class="tip-dot" style="background:#fffbeb;border:1px solid #fde68a"></span>黄色区域可编辑</span>
+      <span class="tip"><span class="tip-dot" style="background:#f1f5f9;border:1px solid #e2e8f0"></span>灰色区域自动计算</span>
+    </div>
+  </div>
+  <div class="card-body" style="padding:0">
     <div class="overflow-x-auto">
       <table class="tbl" id="kpiTable">
         <thead>
           <tr>
-            <th style="width:36px">#</th>
-            <th style="min-width:120px">指标名称</th>
-            <th style="min-width:100px">合同要求</th>
-            <th style="min-width:90px">KPI权重占比</th>
-            <th style="min-width:110px">权重金额（元）</th>
-            <th style="width:36px"></th>
+            <th style="width:42px">#</th>
+            <th style="min-width:140px">指标名称</th>
+            <th style="min-width:110px">合同要求</th>
+            <th style="min-width:100px">KPI权重占比</th>
+            <th style="min-width:120px">权重金额（元）</th>
+            <th style="width:42px"></th>
           </tr>
         </thead>
         <tbody id="kpiBody"></tbody>
         <tfoot>
           <tr class="row-total">
-            <td class="kpi-calc text-center" colspan="2" style="font-weight:600">合 计</td>
+            <td class="kpi-calc text-center" colspan="2" style="font-weight:700">合 计</td>
             <td></td>
-            <td class="kpi-calc" id="kpiWeightTotal" style="font-weight:600">0.00%</td>
-            <td class="kpi-calc" id="kpiAmountTotal" style="font-weight:600">¥0.00</td>
+            <td class="kpi-calc" id="kpiWeightTotal" style="font-weight:700">0.00%</td>
+            <td class="kpi-calc" id="kpiAmountTotal" style="font-weight:700">¥0.00</td>
             <td></td>
           </tr>
         </tfoot>
       </table>
     </div>
-    <div class="flex items-center justify-between mt-4">
-      <button class="add-row" onclick="addKpiRow()">＋ 添加指标</button>
-      <div id="kpiValidation" class="flex items-center gap-3"></div>
+  </div>
+  <div style="padding:14px 28px 22px; display:flex; align-items:center; justify-content:space-between; border-top:1px solid #f1f3f6;">
+    <button class="add-row" onclick="addKpiRow()">＋ 添加指标</button>
+    <div id="kpiValidation" class="flex items-center gap-3"></div>
+  </div>
+</div>
+
+<!-- ===== 成本预算表 ===== -->
+<div class="card">
+  <div class="card-header">
+    <div class="title">
+      <div class="icon" style="background:#fce7f3;color:#db2777">💰</div>
+      成本预算表
+    </div>
+    <div class="flex items-center gap-4">
+      <span class="tip"><span class="tip-dot" style="background:#fffbeb;border:1px solid #fde68a"></span>黄色区域可编辑</span>
+      <span class="tip"><span class="tip-dot" style="background:#f1f5f9;border:1px solid #e2e8f0"></span>灰色区域自动计算</span>
+      <span style="font-size:12px;color:#94a3b8;font-weight:500">单位：元</span>
     </div>
   </div>
-
-  <!-- Cost Section -->
-  <div class="card p-6 mb-6">
-    <div class="flex items-center justify-between mb-4">
-      <div class="section-badge">成本预算表</div>
-      <div class="flex items-center gap-4">
-        <span class="tip"><span class="tip-dot" style="background:#FFFBEB;border:1px solid #FDE68A"></span>可编辑</span>
-        <span class="tip"><span class="tip-dot" style="background:#F1F5F9"></span>自动计算</span>
-        <span class="text-xs text-gray-400">单位：元</span>
-      </div>
-    </div>
+  <div class="card-body" style="padding:0">
     <div class="overflow-x-auto">
       <div class="cost-wrap">
         <table class="tbl" id="costTable">
@@ -249,35 +561,43 @@
         </table>
       </div>
     </div>
+  </div>
 
-    <!-- 成本提示栏 -->
-    <div id="costSummaryBar" class="mt-4 p-4 rounded-lg border" style="background:#F0F9FF;border-color:#BAE6FD;display:none;">
-      <div class="flex items-center justify-between flex-wrap gap-3">
-        <div class="flex items-center gap-4 flex-wrap">
+  <!-- 成本提示栏 -->
+  <div style="padding:0 28px 28px">
+    <div id="costSummaryBar" class="cost-summary-bar" style="display:none">
+      <div class="flex items-center justify-between flex-wrap gap-4">
+        <div class="flex items-center gap-6 flex-wrap">
           <div>
-            <div class="text-xs text-gray-500 mb-1">实际成本（合同金额 ÷ 1.06 × (1 - 毛利率)）</div>
-            <div id="costSummaryActual" class="text-xl font-bold text-blue-700 font-mono">¥0.00</div>
+            <div class="item-label">实际成本（合同金额 ÷ 1.06 × (1 − 毛利率)）</div>
+            <div id="costSummaryActual" class="item-value" style="color:#1d4ed8">¥0.00</div>
           </div>
-          <div class="text-gray-300 text-2xl hidden sm:block">|</div>
+          <div style="width:1px;height:40px;background:#bfdbfe"></div>
           <div>
-            <div class="text-xs text-gray-500 mb-1">当前成本合计</div>
-            <div id="costSummaryCurrent" class="text-xl font-bold text-gray-700 font-mono">¥0.00</div>
+            <div class="item-label">当前成本合计</div>
+            <div id="costSummaryCurrent" class="item-value" style="color:#374151">¥0.00</div>
           </div>
-          <div class="text-gray-300 text-2xl hidden sm:block">|</div>
+          <div style="width:1px;height:40px;background:#bfdbfe"></div>
           <div>
-            <div class="text-xs text-gray-500 mb-1">差额</div>
-            <div id="costSummaryDiff" class="text-xl font-bold font-mono">¥0.00</div>
+            <div class="item-label">差额</div>
+            <div id="costSummaryDiff" class="item-value" style="color:#2563eb">¥0.00</div>
           </div>
         </div>
         <div id="costSummaryBadge"></div>
       </div>
     </div>
   </div>
+</div>
 
-  <div class="text-center py-8">
-    <button class="btn-main" onclick="generateExcel()">📊 生成 Excel 文件</button>
-    <p class="text-xs text-gray-400 mt-3">生成格式与立项附件模板一致的 .xlsx 文件</p>
-  </div>
+<!-- ===== 生成按钮 ===== -->
+<div style="text-align:center; padding: 20px 0 40px">
+  <button class="btn-main" onclick="generateExcel()">
+    <span style="font-size:20px">📊</span>
+    生成 Excel 文件
+  </button>
+  <p style="font-size:12px; color:#94a3b8; margin-top:12px;">生成格式与立项附件模板一致的 .xlsx 文件</p>
+</div>
+
 </div>
 
 <script>
@@ -364,14 +684,10 @@ function updateFileName() {
   const name = getFileName();
   if (name) {
     el.textContent = name;
-    el.style.color = '#1E293B';
-    el.style.background = '#F0FDF4';
-    el.style.borderColor = '#86EFAC';
+    el.classList.add('ready');
   } else {
     el.textContent = '请先填写项目信息...';
-    el.style.color = '#94A3B8';
-    el.style.background = '#F8FAFC';
-    el.style.borderColor = '#E2E8F0';
+    el.classList.remove('ready');
   }
 }
 
@@ -477,7 +793,7 @@ function recalcCost() {
     summaryCurrent.textContent = fmtY(grand);
     const diff = grand - actualCost;
     summaryDiff.textContent = (diff >= 0 ? '+' : '') + fmtY(diff);
-    summaryDiff.style.color = Math.abs(diff) < 0.01 ? '#16A34A' : (diff > 0 ? '#DC2626' : '#2563EB');
+    summaryDiff.style.color = Math.abs(diff) < 0.01 ? '#16a34a' : (diff > 0 ? '#dc2626' : '#2563eb');
     if (Math.abs(diff) < 0.01) {
       summaryBadge.innerHTML = '<span class="badge-ok">✓ 成本合计 = 实际成本</span>';
     } else if (diff > 0) {
@@ -524,7 +840,7 @@ function generateExcel() {
   for (let m=0;m<12;m++) sv(1,6+m, `第${m+1}个月`);
   sv(1,18,'合计');
   const infoParts = [];
-  if (startDate || endDate) infoParts.push(`日期:${startDate||'?'}~${endDate||'?'}`);
+  if (startDate || endDate) infoParts.push(`日期:${startDate||'?'}-${endDate||'?'}`);
   if (productType) infoParts.push(`产品:${productType}`);
   if (marginRate > 0) infoParts.push(`毛利率:${marginRate}%`);
   sv(1,19, infoParts.length ? infoParts.join(' | ') : '备注');
