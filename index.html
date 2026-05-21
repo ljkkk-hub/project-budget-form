@@ -45,6 +45,34 @@
     position: relative;
     z-index: 1;
   }
+  /* ========== 一言 ========== */
+  .hitokoto-wrap {
+    position: absolute;
+    top: 18px;
+    right: 24px;
+    max-width: 380px;
+    text-align: right;
+    z-index: 2;
+    cursor: pointer;
+    transition: opacity .2s;
+  }
+  .hitokoto-wrap:hover { opacity: 0.85; }
+  .hitokoto-text {
+    font-size: 13px;
+    color: rgba(255,255,255,0.8);
+    line-height: 1.6;
+    font-weight: 400;
+    font-style: italic;
+    margin: 0;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  }
+  .hitokoto-from {
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+    margin-top: 4px;
+    font-style: normal;
+    font-weight: 300;
+  }
   .hero .badge-bar {
     display: inline-flex;
     gap: 16px;
@@ -375,6 +403,10 @@
 
 <!-- ===== 头部 ===== -->
 <div class="hero">
+  <div class="hitokoto-wrap" id="hitokotoWrap" onclick="fetchHitokoto()" title="点击换一条">
+    <p class="hitokoto-text" id="hitokotoText">加载中...</p>
+    <p class="hitokoto-from" id="hitokotoFrom"></p>
+  </div>
   <h1>项目立项预算表</h1>
   <p class="subtitle">在线填写立项金额与 KPI 需求，一键导出 Excel</p>
   <div class="badge-bar">
@@ -938,6 +970,26 @@ function generateExcel() {
 
 initKpi();
 initCost();
+
+/* ========== 一言 API ========== */
+function fetchHitokoto() {
+  fetch('https://v1.hitokoto.cn/?c=d&c=i&c=k&min_length=8&max_length=50&encode=json')
+    .then(r => r.json())
+    .then(data => {
+      const textEl = document.getElementById('hitokotoText');
+      const fromEl = document.getElementById('hitokotoFrom');
+      textEl.textContent = data.hitokoto || '生活不止眼前的苟且，还有远方的苟且。';
+      const fromParts = [];
+      if (data.from) fromParts.push(data.from);
+      if (data.from_who) fromParts.push(data.from_who);
+      fromEl.textContent = fromParts.length ? `—— ${fromParts.join(' · ')}` : '';
+    })
+    .catch(() => {
+      document.getElementById('hitokotoText').textContent = '人如果没有梦想，和咸鱼有什么区别。';
+      document.getElementById('hitokotoFrom').textContent = '—— 少林足球';
+    });
+}
+fetchHitokoto();
 </script>
 </body>
 </html>
