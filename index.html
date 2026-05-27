@@ -392,6 +392,57 @@
   .cost-summary-bar .item-label { font-size: 12px; color: #64748b; margin-bottom: 4px; }
   .cost-summary-bar .item-value { font-size: 20px; font-weight: 800; font-family: 'Noto Sans SC', monospace; }
 
+  /* ========== 成本计算器 ========== */
+  .calc-section { border: 1.5px solid #e2e8f0; border-radius: 12px; margin-bottom: 16px; overflow: hidden; }
+  .calc-section:last-child { margin-bottom: 0; }
+  .calc-section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px; background: #f8fafc; cursor: pointer;
+    border-bottom: 1.5px solid #e2e8f0; transition: background .15s;
+  }
+  .calc-section-header:hover { background: #f1f5f9; }
+  .calc-section-header .name { font-size: 15px; font-weight: 700; color: #1e293b; }
+  .calc-section-header .total { font-size: 15px; font-weight: 700; color: #1d4ed8; font-family: 'Noto Sans SC', monospace; }
+  .calc-section-body { padding: 16px 20px; }
+  .calc-section-body.collapsed { display: none; }
+  .calc-tbl { border-collapse: collapse; width: 100%; }
+  .calc-tbl th {
+    background: #1e3a5f; color: #fff; font-weight: 600; font-size: 12px;
+    padding: 9px 8px; text-align: center; white-space: nowrap; border: 1px solid #1e3a5f;
+  }
+  .calc-tbl td { border: 1px solid #e2e8f0; padding: 0; font-size: 13px; vertical-align: middle; }
+  .calc-tbl .calc-input {
+    width: 100%; padding: 7px 8px; border: none; outline: none;
+    font-size: 13px; font-family: inherit; background: #fffbeb;
+    text-align: center; transition: background .1s;
+  }
+  .calc-tbl .calc-input:focus { background: #fef3c7; box-shadow: inset 0 0 0 2px #f59e0b; }
+  .calc-tbl .calc-input-name { text-align: left; padding-left: 12px; }
+  .calc-tbl .calc-input-num { text-align: right; font-variant-numeric: tabular-nums; }
+  .calc-tbl .calc-total {
+    background: #f1f5f9; text-align: right; padding: 7px 10px;
+    color: #475569; font-variant-numeric: tabular-nums; font-weight: 600;
+    font-size: 13px;
+  }
+  .calc-tbl .calc-del { opacity: 0; cursor: pointer; color: #cbd5e1; font-size: 16px;
+    padding: 2px 8px; transition: all .15s; text-align: center; display: block; }
+  .calc-tbl tr:hover .calc-del { opacity: 1; }
+  .calc-tbl .calc-del:hover { color: #ef4444; }
+  .calc-section-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: 12px;
+  }
+  .calc-toggle-icon { font-size: 12px; color: #94a3b8; transition: transform .2s; }
+  .calc-toggle-icon.rotated { transform: rotate(180deg); }
+  .calc-grand-total {
+    margin-top: 20px; padding: 16px 24px; border-radius: 10px;
+    background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+    color: #fff; display: flex; align-items: center; justify-content: space-between;
+  }
+  .calc-grand-total .label { font-size: 14px; font-weight: 600; }
+  .calc-grand-total .value { font-size: 22px; font-weight: 800; font-family: 'Noto Sans SC', monospace; }
+  .calc-calc-total { background: #eef2ff !important; font-weight: 700; color: #1e3a5f; }
+
   @media (max-width: 1024px) {
     .grid-4 { grid-template-columns: 1fr 1fr; }
     .grid-3 { grid-template-columns: 1fr; }
@@ -561,6 +612,7 @@
               <th class="cost-header-type" rowspan="2">成本类型</th>
               <th class="cost-header-time" colspan="12">时 间</th>
               <th class="cost-header-total" rowspan="2">合计</th>
+              <th class="cost-header-total" rowspan="2" style="background:linear-gradient(135deg,#1e3a5f 0%,#3b82f6 100%)">计算器合计</th>
               <th class="cost-header-note" rowspan="2">备注</th>
             </tr>
             <tr>
@@ -587,6 +639,7 @@
               <td class="cost-calc" id="cc7"></td><td class="cost-calc" id="cc8"></td><td class="cost-calc" id="cc9"></td>
               <td class="cost-calc" id="cc10"></td><td class="cost-calc" id="cc11"></td><td class="cost-calc" id="cc12"></td>
               <td class="cost-calc" style="font-weight:700" id="ccTotal"></td>
+              <td class="cost-calc calc-calc-total" style="font-weight:700" id="calcGrandTotal">¥0.00</td>
               <td></td>
             </tr>
           </tfoot>
@@ -617,6 +670,24 @@
         </div>
         <div id="costSummaryBadge"></div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 成本计算器 ===== -->
+<div class="card">
+  <div class="card-header">
+    <div class="title">
+      <div class="icon" style="background:#dbeafe;color:#2563eb">🧮</div>
+      成本计算器
+    </div>
+    <div style="font-size:12px;color:#64748b">辅助计算六大成本，结果自动同步到上方成本预算表</div>
+  </div>
+  <div class="card-body" id="calcContainer"></div>
+  <div style="padding:0 28px 28px">
+    <div class="calc-grand-total">
+      <span class="label">计算器总合计</span>
+      <span class="value" id="calcGrandTotalValue">¥0.00</span>
     </div>
   </div>
 </div>
@@ -735,6 +806,7 @@ function initCost() {
         id="c${ri}_${m}" oninput="recalcCost()"></td>`;
     }
     h += `<td class="cost-calc" id="crt${ri}">¥0.00</td>`;
+    h += `<td class="cost-calc calc-calc-total" id="calcTotal${ri}">¥0.00</td>`;
     h += `<td class="cost-note">${ct.note || '-'}</td>`;
     tr.innerHTML = h;
     tbody.appendChild(tr);
@@ -970,6 +1042,165 @@ function generateExcel() {
 
 initKpi();
 initCost();
+initCalculator();
+
+/* ========== 成本计算器 ========== */
+const CALC_PRESETS = [
+  { name: '外部分包成本', items: [
+    { name: '摄影', price: 1000, unit: '天/人', qty: 1, days: 2 },
+    { name: '演员', price: 1000, unit: '天/人', qty: 1, days: 2 },
+    { name: '剪辑', price: 200, unit: '天/人次', qty: 4, days: 1 },
+    { name: '撰稿', price: 200, unit: '天/人次', qty: 4, days: 1 },
+    { name: '设计', price: '', unit: '天/人次', qty: '', days: '' }
+  ]},
+  { name: '运营服务成本', items: [
+    { name: '数据维护费用', price: 8000, unit: '月/次', qty: 1, days: 1 }
+  ]},
+  { name: '媒介成本', items: [
+    { name: '蒲公英下单', price: '', unit: '', qty: '', days: '' },
+    { name: '小红星平台下单', price: '', unit: '', qty: '', days: '' }
+  ]},
+  { name: '投流成本', items: [
+    { name: '抖音', price: '', unit: '', qty: '', days: '' },
+    { name: '小红书', price: '', unit: '', qty: '', days: '' },
+    { name: '视频号', price: '', unit: '', qty: '', days: '' }
+  ]},
+  { name: '其他成本', items: [
+    { name: '道具', price: 600, unit: '天/次', qty: 1, days: 2 },
+    { name: '场地租金', price: 600, unit: '天/次', qty: 1, days: 2 },
+    { name: '交通', price: 250, unit: '天/次', qty: 1, days: 2 },
+    { name: '外拍餐补', price: 50, unit: '天/人', qty: 4, days: 2 },
+    { name: '奖品', price: '', unit: '月/次', qty: '', days: '' }
+  ]},
+  { name: '人力成本', items: [
+    { name: '编导+剪辑+运营', price: 10000, unit: '月/次', qty: 1, days: 1 }
+  ]}
+];
+
+let calcData = JSON.parse(JSON.stringify(CALC_PRESETS));
+
+function initCalculator() {
+  renderCalculator();
+  recalcCalculator();
+}
+
+function renderCalculator() {
+  const container = document.getElementById('calcContainer');
+  container.innerHTML = '';
+  calcData.forEach((cat, ci) => {
+    const section = document.createElement('div');
+    section.className = 'calc-section';
+    section.innerHTML = `
+      <div class="calc-section-header" onclick="toggleCalcSection(${ci})">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="calc-toggle-icon" id="calcToggle${ci}">▼</span>
+          <span class="name">${cat.name}</span>
+        </div>
+        <span class="total" id="catTotal${ci}">¥0.00</span>
+      </div>
+      <div class="calc-section-body" id="calcBody${ci}">
+        <table class="calc-tbl">
+          <thead>
+            <tr>
+              <th style="min-width:140px">项目</th>
+              <th style="min-width:90px">单价</th>
+              <th style="min-width:80px">单位</th>
+              <th style="min-width:70px">数量</th>
+              <th style="min-width:70px">天数</th>
+              <th style="min-width:100px">总价</th>
+              <th style="width:36px"></th>
+            </tr>
+          </thead>
+          <tbody id="calcTbody${ci}"></tbody>
+        </table>
+        <div class="calc-section-footer">
+          <button class="add-row" onclick="event.stopPropagation();addCalcItem(${ci})">＋ 添加子项</button>
+        </div>
+      </div>
+    `;
+    container.appendChild(section);
+    renderCalcItems(ci);
+  });
+}
+
+function renderCalcItems(ci) {
+  const tbody = document.getElementById(`calcTbody${ci}`);
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  calcData[ci].items.forEach((item, ii) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input type="text" class="calc-input calc-input-name" value="${esc(item.name)}"
+        placeholder="项目名称" oninput="calcData[${ci}].items[${ii}].name=this.value"></td>
+      <td><input type="number" class="calc-input calc-input-num" value="${item.price}" placeholder="0"
+        min="0" step="0.01" oninput="calcData[${ci}].items[${ii}].price=this.value;recalcCalculator()"></td>
+      <td><input type="text" class="calc-input" value="${esc(item.unit)}" placeholder="单位"
+        oninput="calcData[${ci}].items[${ii}].unit=this.value"></td>
+      <td><input type="number" class="calc-input calc-input-num" value="${item.qty}" placeholder="0"
+        min="0" step="0.01" oninput="calcData[${ci}].items[${ii}].qty=this.value;recalcCalculator()"></td>
+      <td><input type="number" class="calc-input calc-input-num" value="${item.days}" placeholder="0"
+        min="0" step="0.01" oninput="calcData[${ci}].items[${ii}].days=this.value;recalcCalculator()"></td>
+      <td class="calc-total" id="itemTotal${ci}_${ii}">¥0.00</td>
+      <td style="text-align:center"><span class="calc-del" onclick="delCalcItem(${ci},${ii})" title="删除">×</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function toggleCalcSection(ci) {
+  const body = document.getElementById(`calcBody${ci}`);
+  const icon = document.getElementById(`calcToggle${ci}`);
+  if (body.classList.contains('collapsed')) {
+    body.classList.remove('collapsed');
+    icon.classList.remove('rotated');
+  } else {
+    body.classList.add('collapsed');
+    icon.classList.add('rotated');
+  }
+}
+
+function addCalcItem(ci) {
+  calcData[ci].items.push({ name: '', price: '', unit: '', qty: '', days: '' });
+  renderCalcItems(ci);
+  recalcCalculator();
+}
+
+function delCalcItem(ci, ii) {
+  calcData[ci].items.splice(ii, 1);
+  if (calcData[ci].items.length === 0) {
+    calcData[ci].items.push({ name: '', price: '', unit: '', qty: '', days: '' });
+  }
+  renderCalcItems(ci);
+  recalcCalculator();
+}
+
+function recalcCalculator() {
+  let grandTotal = 0;
+  calcData.forEach((cat, ci) => {
+    let catTotal = 0;
+    cat.items.forEach((item, ii) => {
+      const price = parseFloat(item.price) || 0;
+      const qty = parseFloat(item.qty) || 0;
+      const days = parseFloat(item.days) || 0;
+      const total = price * qty * days;
+      catTotal += total;
+      const el = document.getElementById(`itemTotal${ci}_${ii}`);
+      if (el) el.textContent = fmtY(total);
+    });
+    grandTotal += catTotal;
+    const catEl = document.getElementById(`catTotal${ci}`);
+    if (catEl) catEl.textContent = fmtY(catTotal);
+    // 同步到成本预算表的计算器合计列
+    const calcTotalEl = document.getElementById(`calcTotal${ci}`);
+    if (calcTotalEl) calcTotalEl.textContent = fmtY(catTotal);
+  });
+  // 总合计
+  const grandEl = document.getElementById('calcGrandTotalValue');
+  if (grandEl) grandEl.textContent = fmtY(grandTotal);
+  // 同步到成本预算表底部合计
+  const calcGrandEl = document.getElementById('calcGrandTotal');
+  if (calcGrandEl) calcGrandEl.textContent = fmtY(grandTotal);
+}
 
 /* ========== 一言 API ========== */
 function fetchHitokoto() {
