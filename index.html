@@ -1040,10 +1040,6 @@ function generateExcel() {
   XLSX.writeFile(wb, `${fileName}.xlsx`);
 }
 
-initKpi();
-initCost();
-initCalculator();
-
 /* ========== 成本计算器 ========== */
 const CALC_PRESETS = [
   { name: '外部分包成本', items: [
@@ -1220,6 +1216,9 @@ function fetchHitokoto() {
       document.getElementById('hitokotoFrom').textContent = '—— 少林足球';
     });
 }
+initKpi();
+initCost();
+initCalculator();
 fetchHitokoto();
 </script>
 </body>
