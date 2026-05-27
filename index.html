@@ -676,18 +676,23 @@
 
 <!-- ===== 成本计算器 ===== -->
 <div class="card">
-  <div class="card-header">
-    <div class="title">
-      <div class="icon" style="background:#dbeafe;color:#2563eb">🧮</div>
-      成本计算器
+  <div class="card-header" style="cursor:pointer" onclick="toggleCalcCard()">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="title">
+        <div class="icon" style="background:#dbeafe;color:#2563eb">🧮</div>
+        成本计算器
+      </div>
+      <span id="calcCardToggleIcon" style="font-size:13px;color:#94a3b8;transition:transform .2s">▼</span>
     </div>
     <div style="font-size:12px;color:#64748b">辅助计算六大成本，结果自动同步到上方成本预算表</div>
   </div>
-  <div class="card-body" id="calcContainer"></div>
-  <div style="padding:0 28px 28px">
-    <div class="calc-grand-total">
-      <span class="label">计算器总合计</span>
-      <span class="value" id="calcGrandTotalValue">¥0.00</span>
+  <div id="calcCardBody">
+    <div class="card-body" id="calcContainer"></div>
+    <div style="padding:0 28px 28px">
+      <div class="calc-grand-total">
+        <span class="label">计算器总合计</span>
+        <span class="value" id="calcGrandTotalValue">¥0.00</span>
+      </div>
     </div>
   </div>
 </div>
@@ -1196,6 +1201,21 @@ function recalcCalculator() {
   // 同步到成本预算表底部合计
   const calcGrandEl = document.getElementById('calcGrandTotal');
   if (calcGrandEl) calcGrandEl.textContent = fmtY(grandTotal);
+}
+
+/* ========== 计算器卡片折叠 ========== */
+function toggleCalcCard() {
+  const body = document.getElementById('calcCardBody');
+  const icon = document.getElementById('calcCardToggleIcon');
+  if (body.style.display === 'none') {
+    body.style.display = 'block';
+    icon.style.transform = 'rotate(0deg)';
+    icon.textContent = '▼';
+  } else {
+    body.style.display = 'none';
+    icon.style.transform = 'rotate(-90deg)';
+    icon.textContent = '▶';
+  }
 }
 
 /* ========== 一言 API ========== */
