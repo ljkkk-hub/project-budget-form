@@ -1312,7 +1312,7 @@ function recalcCalculator() {
 
   /* --- 当前利润率 --- */
   const profitEl = document.getElementById('calcCardProfit');
-  if (profitEl && amt > 0 && margin > 0) {
+  if (profitEl && amt > 0) {
     const revenue = amt / 1.06;
     const profitRate = (revenue - grandTotal) / revenue * 100;
     profitEl.style.display = 'inline-block';
@@ -1321,7 +1321,7 @@ function recalcCalculator() {
       profitEl.style.color = '#dc2626';
       profitEl.style.background = '#fef2f2';
       profitEl.style.borderColor = '#fecaca';
-    } else if (profitRate < margin) {
+    } else if (margin > 0 && profitRate < margin) {
       profitEl.style.color = '#d97706';
       profitEl.style.background = '#fffbeb';
       profitEl.style.borderColor = '#fde68a';
@@ -1339,7 +1339,7 @@ function recalcCalculator() {
     if (remainEl) applyRemainStyle(remainEl);
 
     const profitEl2 = document.getElementById(`calcProfit${ci}`);
-    if (profitEl2 && amt > 0 && margin > 0) {
+    if (profitEl2 && amt > 0) {
       const revenue = amt / 1.06;
       const profitRate = (revenue - grandTotal) / revenue * 100;
       profitEl2.style.display = 'inline-block';
@@ -1348,7 +1348,7 @@ function recalcCalculator() {
         profitEl2.style.color = '#dc2626';
         profitEl2.style.background = '#fef2f2';
         profitEl2.style.borderColor = '#fecaca';
-      } else if (profitRate < margin) {
+      } else if (margin > 0 && profitRate < margin) {
         profitEl2.style.color = '#d97706';
         profitEl2.style.background = '#fffbeb';
         profitEl2.style.borderColor = '#fde68a';
