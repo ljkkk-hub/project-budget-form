@@ -416,6 +416,7 @@
   .calc-section-header .total { font-size: 15px; font-weight: 700; color: #1d4ed8; font-family: 'Noto Sans SC', monospace; }
   .calc-remain { font-size: 13px; font-weight: 700; color: #16a34a; padding: 2px 8px; background: #f0fdf4; border-radius: 6px; border: 1px solid #bbf7d0; white-space: nowrap; }
   .calc-profit { font-size: 13px; font-weight: 700; color: #2563eb; padding: 2px 8px; background: #eff6ff; border-radius: 6px; border: 1px solid #bfdbfe; white-space: nowrap; }
+  .calc-contract { font-size: 13px; font-weight: 700; color: #7c3aed; padding: 2px 8px; background: #f5f3ff; border-radius: 6px; border: 1px solid #ddd6fe; white-space: nowrap; }
   .calc-section-body { padding: 16px 20px; }
   .calc-section-body.collapsed { display: none; }
   .calc-tbl { border-collapse: collapse; width: 100%; }
@@ -698,6 +699,7 @@
         成本计算器
       </div>
       <span id="calcCardToggleIcon" style="font-size:13px;color:#94a3b8;transition:transform .2s">▼</span>
+      <span id="calcCardContract" style="font-size:13px;font-weight:700;color:#7c3aed;padding:3px 10px;background:#f5f3ff;border-radius:6px;border:1px solid #ddd6fe;display:none">合同剩余金额 ¥0.00</span>
       <span id="calcCardRemain" style="font-size:13px;font-weight:700;color:#16a34a;padding:3px 10px;background:#f0fdf4;border-radius:6px;border:1px solid #bbf7d0;display:none">成本剩余 ¥0.00</span>
       <span id="calcCardProfit" style="font-size:13px;font-weight:700;color:#2563eb;padding:3px 10px;background:#eff6ff;border-radius:6px;border:1px solid #bfdbfe;display:none">当前利润率 0%</span>
     </div>
@@ -933,6 +935,36 @@ function recalcCost() {
   }
 
   checkCalcDiff();
+
+  /* --- 合同剩余金额（卡片头部 + 六大分类） --- */
+  const revenue = amt / 1.06;
+  function applyContractStyle(el, contractRemain) {
+    if (amt > 0) {
+      el.style.display = 'inline-block';
+      el.textContent = `合同剩余 ${fmtY(contractRemain)}`;
+      if (contractRemain < -0.01) {
+        el.style.color = '#dc2626';
+        el.style.background = '#fef2f2';
+        el.style.borderColor = '#fecaca';
+      } else {
+        el.style.color = '#7c3aed';
+        el.style.background = '#f5f3ff';
+        el.style.borderColor = '#ddd6fe';
+      }
+    } else {
+      el.style.display = 'none';
+    }
+  }
+  const contractRemain = revenue - grand;
+  const cardContractEl = document.getElementById('calcCardContract');
+  if (cardContractEl) applyContractStyle(cardContractEl, contractRemain);
+  COST_TYPES.forEach((_, ci) => {
+    const el = document.getElementById(`calcContract${ci}`);
+    if (el) applyContractStyle(el, contractRemain);
+  });
+
+  /* --- 合同金额变化时也刷新利润率 --- */
+  recalcCalculator();
 }
 
 function generateExcel() {
@@ -1114,6 +1146,7 @@ function renderCalculator() {
         <div style="display:flex;align-items:center;gap:10px">
           <span class="calc-toggle-icon" id="calcToggle${ci}">▼</span>
           <span class="name">${cat.name}</span>
+          <span class="calc-contract" id="calcContract${ci}" style="display:none">合同剩余 ¥0.00</span>
           <span class="calc-remain" id="calcRemain${ci}" style="display:none">成本剩余 ¥0.00</span>
           <span class="calc-profit" id="calcProfit${ci}" style="display:none">利润率 0%</span>
         </div>
