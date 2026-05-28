@@ -1024,14 +1024,16 @@ function generateExcel() {
 
   /* --- Check row --- */
   const checkR0 = totalR0 + 1;
+  const checkR1 = checkR0 + 1;
   sv(checkR0,0,'检验');
-  sn(checkR0,2,0,'#,##0'); sn(checkR0,3,0,'#,##0');
+  sf(checkR0,2, `C${totalR1}-1`);
+  sf(checkR0,3, `D${totalR1}-E2`);
 
   /* --- Error check row --- */
   const errR0 = totalR0 + 2;
   sv(errR0,0,'错误提示');
-  sf(errR0,2, `IF(C${totalR1}=1,"正确","合计比例不等于100%")`);
-  sf(errR0,3, `IF(D${totalR1}=E2,"正确","合计金额不等于合同收入金额")`);
+  sf(errR0,2, `IF(C${checkR1}=0,"正确","合计比例不等于100%")`);
+  sf(errR0,3, `IF(D${checkR1}=0,"正确","合计金额不等于合同收入金额")`);
   sv(errR0,19,'只填写黄色的格子！');
 
   /* --- Sheet config --- */
