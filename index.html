@@ -415,6 +415,7 @@
   .calc-section-header .name { font-size: 15px; font-weight: 700; color: #1e293b; }
   .calc-section-header .total { font-size: 15px; font-weight: 700; color: #1d4ed8; font-family: 'Noto Sans SC', monospace; }
   .calc-remain { font-size: 13px; font-weight: 700; color: #16a34a; padding: 2px 8px; background: #f0fdf4; border-radius: 6px; border: 1px solid #bbf7d0; white-space: nowrap; }
+  .calc-profit { font-size: 13px; font-weight: 700; color: #2563eb; padding: 2px 8px; background: #eff6ff; border-radius: 6px; border: 1px solid #bfdbfe; white-space: nowrap; }
   .calc-section-body { padding: 16px 20px; }
   .calc-section-body.collapsed { display: none; }
   .calc-tbl { border-collapse: collapse; width: 100%; }
@@ -1114,6 +1115,7 @@ function renderCalculator() {
           <span class="calc-toggle-icon" id="calcToggle${ci}">▼</span>
           <span class="name">${cat.name}</span>
           <span class="calc-remain" id="calcRemain${ci}" style="display:none">成本剩余 ¥0.00</span>
+          <span class="calc-profit" id="calcProfit${ci}" style="display:none">利润率 0%</span>
         </div>
         <span class="total" id="catTotal${ci}">¥0.00</span>
       </div>
@@ -1300,8 +1302,31 @@ function recalcCalculator() {
   }
 
   calcData.forEach((_, ci) => {
-    const el = document.getElementById(`calcRemain${ci}`);
-    if (el) applyRemainStyle(el);
+    const remainEl = document.getElementById(`calcRemain${ci}`);
+    if (remainEl) applyRemainStyle(remainEl);
+
+    const profitEl2 = document.getElementById(`calcProfit${ci}`);
+    if (profitEl2 && amt > 0 && margin > 0) {
+      const revenue = amt / 1.06;
+      const profitRate = (revenue - grandTotal) / revenue * 100;
+      profitEl2.style.display = 'inline-block';
+      profitEl2.textContent = `利润率 ${profitRate.toFixed(1)}%`;
+      if (profitRate < 0) {
+        profitEl2.style.color = '#dc2626';
+        profitEl2.style.background = '#fef2f2';
+        profitEl2.style.borderColor = '#fecaca';
+      } else if (profitRate < margin) {
+        profitEl2.style.color = '#d97706';
+        profitEl2.style.background = '#fffbeb';
+        profitEl2.style.borderColor = '#fde68a';
+      } else {
+        profitEl2.style.color = '#2563eb';
+        profitEl2.style.background = '#eff6ff';
+        profitEl2.style.borderColor = '#bfdbfe';
+      }
+    } else if (profitEl2) {
+      profitEl2.style.display = 'none';
+    }
   });
 }
 
