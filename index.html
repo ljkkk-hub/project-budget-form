@@ -945,7 +945,7 @@ function generateExcel() {
   const cell = (r,c) => XLSX.utils.encode_cell({r,c});
   const sv = (r,c,v) => { ws[cell(r,c)] = typeof v==='number' ? {t:'n',v} : {t:'s',v:String(v)}; };
   const sn = (r,c,v,z) => { ws[cell(r,c)] = {t:'n',v,z:z||'0.00%'}; };
-  const sf = (r,c,f) => { ws[cell(r,c)] = {t:'n',f,v:0}; };
+  const sf = (r,c,f,z) => { ws[cell(r,c)] = {t:'n',f,v:0,z:z||undefined}; };
 
   const costNotes = [
     '包含主播、演员、写手、摄影等外协人员以及其他外部分包成本',
@@ -1019,7 +1019,7 @@ function generateExcel() {
   /* --- Total row --- */
   const totalR0 = lastDataR0;
   const totalR1 = totalR0 + 1;
-  sf(totalR0, 2, `SUM(C2:C${lastDataR0})`);
+  sf(totalR0, 2, `SUM(C2:C${lastDataR0})`, '0.00%');
   sf(totalR0, 3, `SUM(D2:D${lastDataR0})`);
 
   /* --- Check row --- */
