@@ -966,11 +966,7 @@ function generateExcel() {
   sn(1,4, contractAmount, '#,##0.00');
   for (let m=0;m<12;m++) sv(1,6+m, `第${m+1}个月`);
   sv(1,18,'合计');
-  const infoParts = [];
-  if (startDate || endDate) infoParts.push(`日期:${startDate||'?'}-${endDate||'?'}`);
-  if (productType) infoParts.push(`产品:${productType}`);
-  if (marginRate > 0) infoParts.push(`毛利率:${marginRate}%`);
-  sv(1,19, infoParts.length ? infoParts.join(' | ') : '备注');
+  sv(1,19, '备注');
 
   /* --- Rows 2-7 (Excel 3-8): KPI[1-6] + Cost[0-5] --- */
   for (let i=1; i<=6; i++) {
@@ -1034,7 +1030,6 @@ function generateExcel() {
   sv(errR0,0,'错误提示');
   sf(errR0,2, `IF(C${checkR1}=0,"正确","合计比例不等于100%")`);
   sf(errR0,3, `IF(D${checkR1}=0,"正确","合计金额不等于合同收入金额")`);
-  sv(errR0,19,'只填写黄色的格子！');
 
   /* --- Sheet config --- */
   ws['!ref'] = XLSX.utils.encode_range({s:{r:0,c:0},e:{r:errR0,c:19}});
