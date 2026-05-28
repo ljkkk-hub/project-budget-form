@@ -931,56 +931,6 @@ function recalcCost() {
   }
 
   checkCalcDiff();
-
-  /* --- 更新成本剩余 --- */
-  const remain = actualCost - grand;
-  const calcCardRemain = document.getElementById('calcCardRemain');
-  if (calcCardRemain) {
-    if (amt > 0 && margin > 0) {
-      calcCardRemain.style.display = 'inline-block';
-      calcCardRemain.textContent = `成本剩余 ${fmtY(Math.max(0, remain))}`;
-      if (remain < -0.01) {
-        calcCardRemain.style.color = '#dc2626';
-        calcCardRemain.style.background = '#fef2f2';
-        calcCardRemain.style.borderColor = '#fecaca';
-      } else if (Math.abs(remain) < 0.01) {
-        calcCardRemain.style.color = '#64748b';
-        calcCardRemain.style.background = '#f1f5f9';
-        calcCardRemain.style.borderColor = '#cbd5e1';
-      } else {
-        calcCardRemain.style.color = '#16a34a';
-        calcCardRemain.style.background = '#f0fdf4';
-        calcCardRemain.style.borderColor = '#bbf7d0';
-      }
-    } else {
-      calcCardRemain.style.display = 'none';
-    }
-  }
-
-  calcData.forEach((_, ci) => {
-    const el = document.getElementById(`calcRemain${ci}`);
-    if (el) {
-      if (amt > 0 && margin > 0) {
-        el.style.display = 'inline-block';
-        el.textContent = `成本剩余 ${fmtY(Math.max(0, remain))}`;
-        if (remain < -0.01) {
-          el.style.color = '#dc2626';
-          el.style.background = '#fef2f2';
-          el.style.borderColor = '#fecaca';
-        } else if (Math.abs(remain) < 0.01) {
-          el.style.color = '#64748b';
-          el.style.background = '#f1f5f9';
-          el.style.borderColor = '#cbd5e1';
-        } else {
-          el.style.color = '#16a34a';
-          el.style.background = '#f0fdf4';
-          el.style.borderColor = '#bbf7d0';
-        }
-      } else {
-        el.style.display = 'none';
-      }
-    }
-  });
 }
 
 function generateExcel() {
@@ -1273,6 +1223,42 @@ function recalcCalculator() {
   if (calcGrandEl) calcGrandEl.textContent = fmtY(grandTotal);
 
   checkCalcDiff();
+
+  /* --- 更新成本剩余（基于计算器内部合计） --- */
+  const amt = parseFloat(document.getElementById('contractAmount').value) || 0;
+  const margin = parseFloat(document.getElementById('marginRate').value) || 0;
+  const actualCost = amt / 1.06 * (1 - margin / 100);
+  const remain = actualCost - grandTotal;
+
+  function applyRemainStyle(el) {
+    if (amt > 0 && margin > 0) {
+      el.style.display = 'inline-block';
+      el.textContent = `成本剩余 ${fmtY(Math.max(0, remain))}`;
+      if (remain < -0.01) {
+        el.style.color = '#dc2626';
+        el.style.background = '#fef2f2';
+        el.style.borderColor = '#fecaca';
+      } else if (Math.abs(remain) < 0.01) {
+        el.style.color = '#64748b';
+        el.style.background = '#f1f5f9';
+        el.style.borderColor = '#cbd5e1';
+      } else {
+        el.style.color = '#16a34a';
+        el.style.background = '#f0fdf4';
+        el.style.borderColor = '#bbf7d0';
+      }
+    } else {
+      el.style.display = 'none';
+    }
+  }
+
+  const calcCardRemain = document.getElementById('calcCardRemain');
+  if (calcCardRemain) applyRemainStyle(calcCardRemain);
+
+  calcData.forEach((_, ci) => {
+    const el = document.getElementById(`calcRemain${ci}`);
+    if (el) applyRemainStyle(el);
+  });
 }
 
 /* ========== 计算器合计校验 ========== */
