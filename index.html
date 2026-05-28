@@ -224,7 +224,7 @@
     white-space: nowrap;
     border: 1px solid #1e3a5f;
   }
-  .tbl td { border: 1px solid #e2e8f0; padding: 0; font-size: 13px; vertical-align: middle; }
+  .tbl td { border: 1px solid #e2e8f0; padding: 0; font-size: 13px; vertical-align: middle; position: relative; }
 
   .kpi-edit {
     background: #fffbeb;
@@ -283,6 +283,8 @@
     text-align: center;
     border: none;
     outline: none;
+    position: absolute;
+    top: 0; left: 0;
     width: 100%;
     height: 100%;
     box-sizing: border-box;
@@ -316,6 +318,11 @@
   .cost-body tr:hover td { background: #e0f2fe; }
   .cost-body tr:hover .cost-input { background: #e0f2fe; }
   .cost-body tr:hover .cost-row-header { background: #bae6fd !important; }
+  .kpi-body tr:hover td { background: #e0f2fe; }
+  .kpi-body tr:hover .kpi-edit { background: #e0f2fe; }
+  .kpi-body tr:hover .kpi-name { background: #e0f2fe; }
+  .calc-tbl tbody tr:hover td { background: #e0f2fe; }
+  .calc-tbl tbody tr:hover .calc-input { background: #e0f2fe; }
 
   .cost-header-type { background: #1e3a5f; color: #fff; font-weight: 600; font-size: 12px; padding: 10px 12px; text-align: center; white-space: nowrap; border: 1px solid #1e3a5f; }
   .cost-header-time { background: #1e3a5f; color: #fff; font-weight: 600; font-size: 12px; padding: 10px 4px; text-align: center; white-space: nowrap; border: 1px solid #1e3a5f; }
@@ -407,6 +414,7 @@
   .calc-section-header:hover { background: #f1f5f9; }
   .calc-section-header .name { font-size: 15px; font-weight: 700; color: #1e293b; }
   .calc-section-header .total { font-size: 15px; font-weight: 700; color: #1d4ed8; font-family: 'Noto Sans SC', monospace; }
+  .calc-remain { font-size: 13px; font-weight: 700; color: #16a34a; padding: 2px 8px; background: #f0fdf4; border-radius: 6px; border: 1px solid #bbf7d0; white-space: nowrap; }
   .calc-section-body { padding: 16px 20px; }
   .calc-section-body.collapsed { display: none; }
   .calc-tbl { border-collapse: collapse; width: 100%; }
@@ -575,7 +583,7 @@
             <th style="width:42px"></th>
           </tr>
         </thead>
-        <tbody id="kpiBody"></tbody>
+        <tbody id="kpiBody" class="kpi-body"></tbody>
         <tfoot>
           <tr class="row-total">
             <td class="kpi-calc text-center" colspan="2" style="font-weight:700">合 计</td>
@@ -689,6 +697,7 @@
         成本计算器
       </div>
       <span id="calcCardToggleIcon" style="font-size:13px;color:#94a3b8;transition:transform .2s">▼</span>
+      <span id="calcCardRemain" style="font-size:13px;font-weight:700;color:#16a34a;padding:3px 10px;background:#f0fdf4;border-radius:6px;border:1px solid #bbf7d0;display:none">成本剩余 ¥0.00</span>
     </div>
     <div style="font-size:12px;color:#64748b">辅助计算六大成本，结果自动同步到上方成本预算表</div>
   </div>
@@ -922,6 +931,56 @@ function recalcCost() {
   }
 
   checkCalcDiff();
+
+  /* --- 更新成本剩余 --- */
+  const remain = actualCost - grand;
+  const calcCardRemain = document.getElementById('calcCardRemain');
+  if (calcCardRemain) {
+    if (amt > 0 && margin > 0) {
+      calcCardRemain.style.display = 'inline-block';
+      calcCardRemain.textContent = `成本剩余 ${fmtY(Math.max(0, remain))}`;
+      if (remain < -0.01) {
+        calcCardRemain.style.color = '#dc2626';
+        calcCardRemain.style.background = '#fef2f2';
+        calcCardRemain.style.borderColor = '#fecaca';
+      } else if (Math.abs(remain) < 0.01) {
+        calcCardRemain.style.color = '#64748b';
+        calcCardRemain.style.background = '#f1f5f9';
+        calcCardRemain.style.borderColor = '#cbd5e1';
+      } else {
+        calcCardRemain.style.color = '#16a34a';
+        calcCardRemain.style.background = '#f0fdf4';
+        calcCardRemain.style.borderColor = '#bbf7d0';
+      }
+    } else {
+      calcCardRemain.style.display = 'none';
+    }
+  }
+
+  calcData.forEach((_, ci) => {
+    const el = document.getElementById(`calcRemain${ci}`);
+    if (el) {
+      if (amt > 0 && margin > 0) {
+        el.style.display = 'inline-block';
+        el.textContent = `成本剩余 ${fmtY(Math.max(0, remain))}`;
+        if (remain < -0.01) {
+          el.style.color = '#dc2626';
+          el.style.background = '#fef2f2';
+          el.style.borderColor = '#fecaca';
+        } else if (Math.abs(remain) < 0.01) {
+          el.style.color = '#64748b';
+          el.style.background = '#f1f5f9';
+          el.style.borderColor = '#cbd5e1';
+        } else {
+          el.style.color = '#16a34a';
+          el.style.background = '#f0fdf4';
+          el.style.borderColor = '#bbf7d0';
+        }
+      } else {
+        el.style.display = 'none';
+      }
+    }
+  });
 }
 
 function generateExcel() {
@@ -1106,6 +1165,7 @@ function renderCalculator() {
         <div style="display:flex;align-items:center;gap:10px">
           <span class="calc-toggle-icon" id="calcToggle${ci}">▼</span>
           <span class="name">${cat.name}</span>
+          <span class="calc-remain" id="calcRemain${ci}" style="display:none">成本剩余 ¥0.00</span>
         </div>
         <span class="total" id="catTotal${ci}">¥0.00</span>
       </div>
