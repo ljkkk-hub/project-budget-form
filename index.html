@@ -612,6 +612,7 @@
               <th class="cost-header-time" colspan="12">时 间</th>
               <th class="cost-header-total" rowspan="2">合计</th>
               <th class="cost-header-total" rowspan="2" style="background:linear-gradient(135deg,#1e3a5f 0%,#3b82f6 100%)">计算器合计</th>
+              <th class="cost-header-total" rowspan="2" style="background:linear-gradient(135deg,#dc2626 0%,#ef4444 100%)">校验</th>
               <th class="cost-header-note" rowspan="2">备注</th>
             </tr>
             <tr>
@@ -639,6 +640,7 @@
               <td class="cost-calc" id="cc10"></td><td class="cost-calc" id="cc11"></td><td class="cost-calc" id="cc12"></td>
               <td class="cost-calc" style="font-weight:700" id="ccTotal"></td>
               <td class="cost-calc calc-calc-total" style="font-weight:700" id="calcGrandTotal">¥0.00</td>
+              <td class="cost-calc" id="calcCheckGrand"></td>
               <td></td>
             </tr>
           </tfoot>
@@ -811,6 +813,7 @@ function initCost() {
     }
     h += `<td class="cost-calc" id="crt${ri}">¥0.00</td>`;
     h += `<td class="cost-calc calc-calc-total" id="calcTotal${ri}">¥0.00</td>`;
+    h += `<td class="cost-calc" id="calcCheck${ri}"></td>`;
     h += `<td class="cost-note">${ct.note || '-'}</td>`;
     tr.innerHTML = h;
     tbody.appendChild(tr);
@@ -912,6 +915,8 @@ function recalcCost() {
   } else {
     summaryBar.style.display = 'none';
   }
+
+  checkCalcDiff();
 }
 
 function generateExcel() {
@@ -1201,6 +1206,55 @@ function recalcCalculator() {
   // 同步到成本预算表底部合计
   const calcGrandEl = document.getElementById('calcGrandTotal');
   if (calcGrandEl) calcGrandEl.textContent = fmtY(grandTotal);
+
+  checkCalcDiff();
+}
+
+/* ========== 计算器合计校验 ========== */
+function checkCalcDiff() {
+  // 解析金额字符串为数字
+  const parseMoney = s => {
+    if (!s) return 0;
+    return parseFloat(String(s).replace(/[¥,]/g, '')) || 0;
+  };
+
+  let grandManual = 0, grandCalc = 0;
+
+  COST_TYPES.forEach((_, ri) => {
+    const manualEl = document.getElementById(`crt${ri}`);
+    const calcEl = document.getElementById(`calcTotal${ri}`);
+    const checkEl = document.getElementById(`calcCheck${ri}`);
+    if (!manualEl || !calcEl || !checkEl) return;
+
+    const manual = parseMoney(manualEl.textContent);
+    const calc = parseMoney(calcEl.textContent);
+    grandManual += manual;
+    grandCalc += calc;
+
+    if (calc > 0) {
+      if (Math.abs(manual - calc) < 0.01) {
+        checkEl.innerHTML = '<span style="color:#16a34a;font-weight:700">✓</span>';
+      } else {
+        checkEl.innerHTML = '<span style="color:#dc2626;font-weight:700">⚠ 不一致</span>';
+      }
+    } else {
+      checkEl.innerHTML = '';
+    }
+  });
+
+  // 底部合计行校验
+  const grandCheckEl = document.getElementById('calcCheckGrand');
+  if (grandCheckEl) {
+    if (grandCalc > 0) {
+      if (Math.abs(grandManual - grandCalc) < 0.01) {
+        grandCheckEl.innerHTML = '<span style="color:#16a34a;font-weight:700">✓</span>';
+      } else {
+        grandCheckEl.innerHTML = '<span style="color:#dc2626;font-weight:700">⚠ 不一致</span>';
+      }
+    } else {
+      grandCheckEl.innerHTML = '';
+    }
+  }
 }
 
 /* ========== 计算器卡片折叠 ========== */
