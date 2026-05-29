@@ -936,34 +936,6 @@ function recalcCost() {
 
   checkCalcDiff();
 
-  /* --- 合同剩余金额（卡片头部 + 六大分类） --- */
-  const revenue = amt / 1.06;
-  function applyContractStyle(el, contractRemain) {
-    if (amt > 0) {
-      el.style.display = 'inline-block';
-      el.textContent = `合同剩余 ${fmtY(contractRemain)}`;
-      if (contractRemain < -0.01) {
-        el.style.color = '#dc2626';
-        el.style.background = '#fef2f2';
-        el.style.borderColor = '#fecaca';
-      } else {
-        el.style.color = '#7c3aed';
-        el.style.background = '#f5f3ff';
-        el.style.borderColor = '#ddd6fe';
-      }
-    } else {
-      el.style.display = 'none';
-    }
-  }
-  const contractRemain = revenue - grand;
-  const cardContractEl = document.getElementById('calcCardContract');
-  if (cardContractEl) applyContractStyle(cardContractEl, contractRemain);
-  COST_TYPES.forEach((_, ci) => {
-    const el = document.getElementById(`calcContract${ci}`);
-    if (el) applyContractStyle(el, contractRemain);
-  });
-
-  /* --- 合同金额变化时也刷新利润率 --- */
   recalcCalculator();
 }
 
@@ -1251,6 +1223,7 @@ function delCalcItem(ci, ii) {
 
 function recalcCalculator() {
   let grandTotal = 0;
+  let totalCost = 0; // 用于合同剩余：取成本预算表和计算器每个分类的较大值
   calcData.forEach((cat, ci) => {
     let catTotal = 0;
     const simple = [1,2,3].includes(ci);
@@ -1264,6 +1237,9 @@ function recalcCalculator() {
       if (el) el.textContent = fmtY(total);
     });
     grandTotal += catTotal;
+    // 合同剩余：取成本预算表和计算器该分类的较大值
+    const rowT = parseFloat(document.getElementById(`crt${ci}`)?.textContent?.replace(/[¥,]/g, '')) || 0;
+    totalCost += Math.max(rowT, catTotal);
     const catEl = document.getElementById(`catTotal${ci}`);
     if (catEl) catEl.textContent = fmtY(catTotal);
     // 同步到成本预算表的计算器合计列
@@ -1360,6 +1336,33 @@ function recalcCalculator() {
     } else if (profitEl2) {
       profitEl2.style.display = 'none';
     }
+  });
+
+  /* --- 合同剩余金额（卡片头部 + 六大分类） --- */
+  const revenue = amt / 1.06;
+  const contractRemain = revenue - totalCost;
+  function applyContractStyle(el, val) {
+    if (amt > 0) {
+      el.style.display = 'inline-block';
+      el.textContent = `合同剩余 ${fmtY(val)}`;
+      if (val < -0.01) {
+        el.style.color = '#dc2626';
+        el.style.background = '#fef2f2';
+        el.style.borderColor = '#fecaca';
+      } else {
+        el.style.color = '#7c3aed';
+        el.style.background = '#f5f3ff';
+        el.style.borderColor = '#ddd6fe';
+      }
+    } else {
+      el.style.display = 'none';
+    }
+  }
+  const cardContractEl = document.getElementById('calcCardContract');
+  if (cardContractEl) applyContractStyle(cardContractEl, contractRemain);
+  COST_TYPES.forEach((_, ci) => {
+    const el = document.getElementById(`calcContract${ci}`);
+    if (el) applyContractStyle(el, contractRemain);
   });
 }
 
