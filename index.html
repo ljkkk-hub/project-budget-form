@@ -129,6 +129,34 @@
   .draft-sidebar-status { font-size: 12px; color: #94a3b8; text-align: center; margin-top: 4px; min-height: 18px; }
   .draft-sidebar-status.saved { color: #16a34a; }
 
+  /* ========== 右侧工具栏 ========== */
+  .right-sidebar {
+    width: 160px; flex-shrink: 0; display: flex; flex-direction: column; gap: 12px;
+    align-self: flex-start; position: sticky; top: 24px;
+  }
+  .right-sidebar-card {
+    background: #fff; border-radius: 16px; border: 1px solid #e8ecf1;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03);
+    padding: 16px; display: flex; flex-direction: column; gap: 8px;
+  }
+  .right-sidebar-title {
+    font-size: 13px; font-weight: 700; color: #475569; text-align: center;
+    padding-bottom: 8px; border-bottom: 1px solid #e2e8f0;
+  }
+  .right-sidebar-btn {
+    width: 100%; padding: 8px 0; font-size: 12px; font-weight: 600;
+    border-radius: 8px; border: 1px solid; cursor: pointer; transition: all .15s;
+    text-align: center;
+  }
+  .right-sidebar-btn:hover { transform: translateY(-1px); }
+  .right-sidebar-btn-clear {
+    background: #fef2f2; color: #dc2626; border-color: #fecaca;
+  }
+  .right-sidebar-btn-clear:hover { background: #fee2e2; }
+  .right-sidebar-hint {
+    font-size: 11px; color: #94a3b8; text-align: center; line-height: 1.5;
+  }
+
   /* ========== 卡片 ========== */
   .card {
     background: #fff;
@@ -494,15 +522,17 @@
     .grid-4 { grid-template-columns: 1fr 1fr; }
     .grid-3 { grid-template-columns: 1fr; }
     .grid-2-3 { grid-template-columns: 1fr; }
-  }
-
-  @media (max-width: 1024px) {
     .container { flex-direction: column; }
     .draft-sidebar { width: 100%; position: static; flex-direction: row; flex-wrap: wrap; align-items: center; padding: 12px 16px; }
     .draft-sidebar-title { margin-bottom: 0; padding-bottom: 0; border-bottom: none; flex-shrink: 0; }
     .draft-sidebar-select { flex: 1; min-width: 140px; max-width: 260px; }
     .draft-sidebar-btn { width: auto; padding: 5px 12px; }
     .draft-sidebar-status { margin-top: 0; margin-left: auto; }
+    .right-sidebar { width: 100%; position: static; flex-direction: row; align-items: center; }
+    .right-sidebar-card { padding: 12px 16px; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 12px; }
+    .right-sidebar-title { padding-bottom: 0; border-bottom: none; flex-shrink: 0; }
+    .right-sidebar-btn { width: auto; padding: 5px 16px; }
+    .right-sidebar-hint { text-align: left; }
   }
 
   /* ========== 草稿管理 ========== */
@@ -806,6 +836,15 @@
   <p style="font-size:12px; color:#94a3b8; margin-top:12px;">生成格式与立项附件模板一致的 .xlsx 文件</p>
 </div>
 
+</div>
+
+<!-- ===== 右侧工具栏 ===== -->
+<div class="right-sidebar">
+  <div class="right-sidebar-card">
+    <div class="right-sidebar-title">快捷操作</div>
+    <button class="right-sidebar-btn right-sidebar-btn-clear" onclick="showClearConfirm()">清空数据</button>
+    <div class="right-sidebar-hint">一键清空当前页面<br>所有填写数据</div>
+  </div>
 </div>
 
 </div>
@@ -1801,6 +1840,69 @@ function initDrafts() {
 }
 
 initDrafts();
+
+/* ========== 清空数据 ========== */
+function showClearConfirm() {
+  const overlay = document.createElement('div');
+  overlay.className = 'draft-modal-overlay';
+  overlay.id = 'clearModalOverlay';
+  overlay.innerHTML = `
+    <div class="draft-modal">
+      <h3>确认清空数据</h3>
+      <p style="font-size:14px;color:#64748b;margin:0 0 16px">当前操作将清空页面所有填写数据，包括基础信息、KPI、成本表和计算器。此操作不可撤销。</p>
+      <div class="draft-modal-btns">
+        <button class="draft-modal-cancel" onclick="closeClearModal()">取消</button>
+        <button class="draft-modal-confirm" style="background:#dc2626;border-color:#dc2626" onclick="confirmClearData()">确定清空</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+}
+
+function closeClearModal() {
+  const overlay = document.getElementById('clearModalOverlay');
+  if (overlay) overlay.remove();
+}
+
+function confirmClearData() {
+  closeClearModal();
+
+  // 清空基础信息
+  document.getElementById('productType').value = '';
+  document.getElementById('projectName').value = '';
+  document.getElementById('startDate').value = '';
+  document.getElementById('endDate').value = '';
+  document.getElementById('marginRate').value = '';
+  document.getElementById('contractAmount').value = '';
+
+  // 清空KPI
+  kpiRows = PRESET_KPIS.map(name => ({ id: kpiIdCounter++, name, contract: '', weight: '' }));
+  renderKpi();
+
+  // 清空成本表
+  COST_TYPES.forEach((_, ri) => {
+    for (let m = 1; m <= 12; m++) {
+      const el = document.getElementById(`c${ri}_${m}`);
+      if (el) el.value = '';
+    }
+  });
+
+  // 清空计算器
+  calcData = JSON.parse(JSON.stringify(CALC_PRESETS));
+  renderCalculator();
+
+  // 重新计算
+  recalcAll();
+  updateFileName();
+
+  // 清除当前草稿关联
+  activeDraftId = null;
+  localStorage.removeItem(DRAFT_ACTIVE_KEY);
+  document.getElementById('draftSelect').value = '';
+  onDraftSelectChange();
+  document.getElementById('draftSaveBtn').disabled = true;
+  showDraftStatus('已清空');
+}
 </script>
 </body>
 </html>
