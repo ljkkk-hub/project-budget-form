@@ -462,6 +462,55 @@
     .grid-3 { grid-template-columns: 1fr; }
     .grid-2-3 { grid-template-columns: 1fr; }
   }
+
+  /* ========== 草稿管理 ========== */
+  .draft-bar {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    padding: 10px 20px; background: #f8fafc; border-radius: 10px;
+    margin-bottom: 16px; border: 1px solid #e2e8f0;
+  }
+  .draft-bar .draft-label { font-size: 13px; font-weight: 700; color: #475569; white-space: nowrap; }
+  .draft-bar .draft-label::before { content: '💾 '; }
+  .draft-select {
+    flex: 1; min-width: 140px; max-width: 260px; padding: 5px 10px; font-size: 13px;
+    border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; color: #1e293b;
+    outline: none; cursor: pointer;
+  }
+  .draft-select:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,.15); }
+  .draft-btn {
+    padding: 5px 12px; font-size: 12px; font-weight: 600; border-radius: 6px;
+    border: 1px solid; cursor: pointer; transition: all .15s; white-space: nowrap;
+  }
+  .draft-btn-save { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
+  .draft-btn-save:hover { background: #dbeafe; }
+  .draft-btn-load { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; }
+  .draft-btn-load:hover { background: #dcfce7; }
+  .draft-btn-del { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
+  .draft-btn-del:hover { background: #fee2e2; }
+  .draft-btn-new { background: #f5f3ff; color: #7c3aed; border-color: #ddd6fe; }
+  .draft-btn-new:hover { background: #ede9fe; }
+  .draft-status { font-size: 12px; color: #94a3b8; margin-left: auto; }
+  .draft-status.saved { color: #16a34a; }
+  .draft-modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,.4); z-index: 9999; display: flex;
+    align-items: center; justify-content: center;
+  }
+  .draft-modal {
+    background: #fff; border-radius: 12px; padding: 24px; width: 360px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.2);
+  }
+  .draft-modal h3 { margin: 0 0 16px; font-size: 16px; color: #1e293b; }
+  .draft-modal input {
+    width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px;
+    font-size: 14px; outline: none; margin-bottom: 16px;
+  }
+  .draft-modal input:focus { border-color: #3b82f6; }
+  .draft-modal-btns { display: flex; gap: 8px; justify-content: flex-end; }
+  .draft-modal-btns button { padding: 6px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1px solid; }
+  .draft-modal-cancel { background: #f1f5f9; color: #475569; border-color: #cbd5e1; }
+  .draft-modal-confirm { background: #2563eb; color: #fff; border-color: #2563eb; }
+
 </style>
 </head>
 <body>
@@ -482,6 +531,19 @@
 </div>
 
 <div class="container">
+
+<!-- ===== 草稿管理栏 ===== -->
+<div class="draft-bar">
+  <span class="draft-label">草稿箱</span>
+  <select class="draft-select" id="draftSelect" onchange="onDraftSelectChange()">
+    <option value="">-- 选择草稿 --</option>
+  </select>
+  <button class="draft-btn draft-btn-new" onclick="showNewDraftModal()">新建草稿</button>
+  <button class="draft-btn draft-btn-save" onclick="saveCurrentDraft()" id="draftSaveBtn" disabled>保存</button>
+  <button class="draft-btn draft-btn-load" onclick="loadSelectedDraft()" id="draftLoadBtn" disabled>加载</button>
+  <button class="draft-btn draft-btn-del" onclick="deleteSelectedDraft()" id="draftDelBtn" disabled>删除</button>
+  <span class="draft-status" id="draftStatus"></span>
+</div>
 
 <!-- ===== 基础信息 ===== -->
 <div class="card">
@@ -1450,6 +1512,274 @@ initKpi();
 initCost();
 initCalculator();
 fetchHitokoto();
+
+/* ========== 草稿管理 ========== */
+const DRAFT_PREFIX = 'budget_draft_';
+const DRAFT_LIST_KEY = 'budget_draft_list';
+const DRAFT_ACTIVE_KEY = 'budget_draft_active';
+let activeDraftId = null;
+let autoSaveTimer = null;
+
+function getDraftList() {
+  try { return JSON.parse(localStorage.getItem(DRAFT_LIST_KEY)) || []; }
+  catch { return []; }
+}
+
+function setDraftList(list) {
+  localStorage.setItem(DRAFT_LIST_KEY, JSON.stringify(list));
+}
+
+function collectFormData() {
+  const data = {
+    productType: document.getElementById('productType').value,
+    projectName: document.getElementById('projectName').value,
+    startDate: document.getElementById('startDate').value,
+    endDate: document.getElementById('endDate').value,
+    marginRate: document.getElementById('marginRate').value,
+    contractAmount: document.getElementById('contractAmount').value,
+    kpiRows: kpiRows.map(r => ({ name: r.name, contract: r.contract, weight: r.weight })),
+    costTable: {},
+    calcData: JSON.parse(JSON.stringify(calcData))
+  };
+  COST_TYPES.forEach((_, ri) => {
+    for (let m = 1; m <= 12; m++) {
+      const el = document.getElementById(`c${ri}_${m}`);
+      if (el) data.costTable[`c${ri}_${m}`] = el.value;
+    }
+  });
+  return data;
+}
+
+function applyFormData(data) {
+  if (!data) return;
+  document.getElementById('productType').value = data.productType || '';
+  document.getElementById('projectName').value = data.projectName || '';
+  document.getElementById('startDate').value = data.startDate || '';
+  document.getElementById('endDate').value = data.endDate || '';
+  document.getElementById('marginRate').value = data.marginRate || '';
+  document.getElementById('contractAmount').value = data.contractAmount || '';
+
+  // KPI
+  if (data.kpiRows && data.kpiRows.length) {
+    kpiRows = data.kpiRows.map(r => ({ id: kpiIdCounter++, name: r.name || '', contract: r.contract || '', weight: r.weight || '' }));
+    renderKpi();
+  }
+
+  // 成本表
+  if (data.costTable) {
+    COST_TYPES.forEach((_, ri) => {
+      for (let m = 1; m <= 12; m++) {
+        const el = document.getElementById(`c${ri}_${m}`);
+        if (el) el.value = data.costTable[`c${ri}_${m}`] || '';
+      }
+    });
+  }
+
+  // 计算器
+  if (data.calcData) {
+    calcData = JSON.parse(JSON.stringify(data.calcData));
+    renderCalculator();
+  }
+
+  recalcAll();
+  updateFileName();
+}
+
+function refreshDraftSelect() {
+  const sel = document.getElementById('draftSelect');
+  const list = getDraftList();
+  const curVal = sel.value;
+  sel.innerHTML = '<option value="">-- 选择草稿 --</option>';
+  list.forEach(d => {
+    const opt = document.createElement('option');
+    opt.value = d.id;
+    opt.textContent = d.name + (d.time ? ` (${d.time})` : '');
+    sel.appendChild(opt);
+  });
+  if (curVal && list.some(d => d.id === curVal)) sel.value = curVal;
+  onDraftSelectChange();
+}
+
+function onDraftSelectChange() {
+  const sel = document.getElementById('draftSelect');
+  const hasSelection = !!sel.value;
+  document.getElementById('draftLoadBtn').disabled = !hasSelection;
+  document.getElementById('draftDelBtn').disabled = !hasSelection;
+}
+
+function showNewDraftModal() {
+  // 用默认名称：项目名 or 日期
+  const projName = document.getElementById('projectName').value || '';
+  const defaultName = projName || ('草稿 ' + new Date().toLocaleDateString('zh-CN'));
+  const overlay = document.createElement('div');
+  overlay.className = 'draft-modal-overlay';
+  overlay.id = 'draftModalOverlay';
+  overlay.innerHTML = `
+    <div class="draft-modal">
+      <h3>新建草稿</h3>
+      <input type="text" id="draftNameInput" placeholder="输入草稿名称" value="${(defaultName || '').replace(/"/g, '&quot;')}">
+      <div class="draft-modal-btns">
+        <button class="draft-modal-cancel" onclick="closeDraftModal()">取消</button>
+        <button class="draft-modal-confirm" onclick="confirmNewDraft()">确定</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  setTimeout(() => document.getElementById('draftNameInput').focus(), 100);
+}
+
+function closeDraftModal() {
+  const overlay = document.getElementById('draftModalOverlay');
+  if (overlay) overlay.remove();
+}
+
+function confirmNewDraft() {
+  const name = document.getElementById('draftNameInput').value.trim() || ('草稿 ' + new Date().toLocaleDateString('zh-CN'));
+  closeDraftModal();
+  const id = 'draft_' + Date.now();
+  const time = new Date().toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+  const data = collectFormData();
+
+  // Save data
+  localStorage.setItem(DRAFT_PREFIX + id, JSON.stringify(data));
+
+  // Update list
+  const list = getDraftList();
+  list.unshift({ id, name, time });
+  setDraftList(list);
+
+  // Set active
+  activeDraftId = id;
+  localStorage.setItem(DRAFT_ACTIVE_KEY, id);
+
+  refreshDraftSelect();
+  document.getElementById('draftSelect').value = id;
+  onDraftSelectChange();
+  document.getElementById('draftSaveBtn').disabled = false;
+  showDraftStatus('已保存');
+}
+
+function saveCurrentDraft() {
+  if (!activeDraftId) {
+    showNewDraftModal();
+    return;
+  }
+  const data = collectFormData();
+  localStorage.setItem(DRAFT_PREFIX + activeDraftId, JSON.stringify(data));
+
+  // Update time
+  const list = getDraftList();
+  const item = list.find(d => d.id === activeDraftId);
+  if (item) {
+    item.time = new Date().toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+    setDraftList(list);
+    refreshDraftSelect();
+    document.getElementById('draftSelect').value = activeDraftId;
+  }
+  showDraftStatus('已保存');
+}
+
+function loadSelectedDraft() {
+  const id = document.getElementById('draftSelect').value;
+  if (!id) return;
+  try {
+    const data = JSON.parse(localStorage.getItem(DRAFT_PREFIX + id));
+    if (!data) { showDraftStatus('草稿数据为空'); return; }
+    applyFormData(data);
+    activeDraftId = id;
+    localStorage.setItem(DRAFT_ACTIVE_KEY, id);
+    document.getElementById('draftSaveBtn').disabled = false;
+    showDraftStatus('已加载');
+  } catch (e) {
+    showDraftStatus('加载失败');
+  }
+}
+
+function deleteSelectedDraft() {
+  const id = document.getElementById('draftSelect').value;
+  if (!id) return;
+  const name = document.getElementById('draftSelect').selectedOptions[0]?.textContent || '';
+  if (!confirm(`确定删除草稿「${name}」吗？`)) return;
+
+  localStorage.removeItem(DRAFT_PREFIX + id);
+  const list = getDraftList().filter(d => d.id !== id);
+  setDraftList(list);
+
+  if (activeDraftId === id) {
+    activeDraftId = null;
+    localStorage.removeItem(DRAFT_ACTIVE_KEY);
+    document.getElementById('draftSaveBtn').disabled = true;
+  }
+
+  refreshDraftSelect();
+  showDraftStatus('已删除');
+}
+
+function showDraftStatus(text) {
+  const el = document.getElementById('draftStatus');
+  el.textContent = text;
+  el.className = 'draft-status' + (text === '已保存' ? ' saved' : '');
+  clearTimeout(el._timer);
+  el._timer = setTimeout(() => { el.textContent = ''; }, 3000);
+}
+
+function autoSaveDraft() {
+  if (!activeDraftId) return;
+  const data = collectFormData();
+  localStorage.setItem(DRAFT_PREFIX + activeDraftId, JSON.stringify(data));
+  showDraftStatus('自动保存');
+}
+
+function scheduleAutoSave() {
+  clearTimeout(autoSaveTimer);
+  autoSaveTimer = setTimeout(autoSaveDraft, 2000);
+}
+
+// Hook into recalcAll for auto-save
+const _origRecalcAll = recalcAll;
+recalcAll = function() {
+  _origRecalcAll();
+  scheduleAutoSave();
+};
+
+// Hook into recalcCost for auto-save (cost table input changes)
+const _origRecalcCost = recalcCost;
+recalcCost = function() {
+  _origRecalcCost();
+  scheduleAutoSave();
+};
+
+// Hook into recalcCalculator for auto-save
+const _origRecalcCalculator = recalcCalculator;
+recalcCalculator = function() {
+  _origRecalcCalculator();
+  scheduleAutoSave();
+};
+
+// On page load: restore active draft or last draft
+function initDrafts() {
+  refreshDraftSelect();
+  const activeId = localStorage.getItem(DRAFT_ACTIVE_KEY);
+  const list = getDraftList();
+
+  if (activeId && list.some(d => d.id === activeId)) {
+    try {
+      const data = JSON.parse(localStorage.getItem(DRAFT_PREFIX + activeId));
+      if (data) {
+        applyFormData(data);
+        activeDraftId = activeId;
+        document.getElementById('draftSelect').value = activeId;
+        onDraftSelectChange();
+        document.getElementById('draftSaveBtn').disabled = false;
+        showDraftStatus('已恢复上次草稿');
+      }
+    } catch (e) { /* ignore */ }
+  } else if (list.length > 0) {
+    // No active draft but drafts exist — just show them in select
+  }
+}
+
+initDrafts();
 </script>
 </body>
 </html>
