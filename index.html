@@ -94,7 +94,40 @@
   }
 
   /* ========== 容器 ========== */
-  .container { max-width: 1480px; margin: 0 auto; padding: 32px 24px 60px; }
+  .container { max-width: 1480px; margin: 0 auto; padding: 32px 24px 60px; display: flex; gap: 20px; }
+  .main-content { flex: 1; min-width: 0; }
+  .draft-sidebar {
+    width: 200px; flex-shrink: 0; background: #fff; border-radius: 16px;
+    border: 1px solid #e8ecf1; box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03);
+    padding: 20px 16px; display: flex; flex-direction: column; gap: 10px;
+    align-self: flex-start; position: sticky; top: 24px;
+  }
+  .draft-sidebar-title {
+    font-size: 15px; font-weight: 700; color: #1e293b; margin-bottom: 4px;
+    padding-bottom: 10px; border-bottom: 1.5px solid #e2e8f0;
+  }
+  .draft-sidebar-select {
+    width: 100%; padding: 6px 8px; font-size: 13px;
+    border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; color: #1e293b;
+    outline: none; cursor: pointer;
+  }
+  .draft-sidebar-select:focus { border-color: #3b82f6; }
+  .draft-sidebar-btn {
+    width: 100%; padding: 6px 0; font-size: 13px; font-weight: 600;
+    border-radius: 6px; border: 1px solid; cursor: pointer; transition: all .15s;
+    text-align: center;
+  }
+  .draft-sidebar-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .draft-btn-new { background: #f5f3ff; color: #7c3aed; border-color: #ddd6fe; }
+  .draft-btn-new:hover:not(:disabled) { background: #ede9fe; }
+  .draft-btn-save { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
+  .draft-btn-save:hover:not(:disabled) { background: #dbeafe; }
+  .draft-btn-load { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; }
+  .draft-btn-load:hover:not(:disabled) { background: #dcfce7; }
+  .draft-btn-del { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
+  .draft-btn-del:hover:not(:disabled) { background: #fee2e2; }
+  .draft-sidebar-status { font-size: 12px; color: #94a3b8; text-align: center; margin-top: 4px; min-height: 18px; }
+  .draft-sidebar-status.saved { color: #16a34a; }
 
   /* ========== 卡片 ========== */
   .card {
@@ -463,34 +496,17 @@
     .grid-2-3 { grid-template-columns: 1fr; }
   }
 
+  @media (max-width: 1024px) {
+    .container { flex-direction: column; }
+    .draft-sidebar { width: 100%; position: static; flex-direction: row; flex-wrap: wrap; align-items: center; padding: 12px 16px; }
+    .draft-sidebar-title { margin-bottom: 0; padding-bottom: 0; border-bottom: none; flex-shrink: 0; }
+    .draft-sidebar-select { flex: 1; min-width: 140px; max-width: 260px; }
+    .draft-sidebar-btn { width: auto; padding: 5px 12px; }
+    .draft-sidebar-status { margin-top: 0; margin-left: auto; }
+  }
+
   /* ========== 草稿管理 ========== */
-  .draft-bar {
-    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-    padding: 10px 20px; background: #f8fafc; border-radius: 10px;
-    margin-bottom: 16px; border: 1px solid #e2e8f0;
-  }
-  .draft-bar .draft-label { font-size: 13px; font-weight: 700; color: #475569; white-space: nowrap; }
-  .draft-bar .draft-label::before { content: '💾 '; }
-  .draft-select {
-    flex: 1; min-width: 140px; max-width: 260px; padding: 5px 10px; font-size: 13px;
-    border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; color: #1e293b;
-    outline: none; cursor: pointer;
-  }
-  .draft-select:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,.15); }
-  .draft-btn {
-    padding: 5px 12px; font-size: 12px; font-weight: 600; border-radius: 6px;
-    border: 1px solid; cursor: pointer; transition: all .15s; white-space: nowrap;
-  }
-  .draft-btn-save { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
-  .draft-btn-save:hover { background: #dbeafe; }
-  .draft-btn-load { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; }
-  .draft-btn-load:hover { background: #dcfce7; }
-  .draft-btn-del { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
-  .draft-btn-del:hover { background: #fee2e2; }
-  .draft-btn-new { background: #f5f3ff; color: #7c3aed; border-color: #ddd6fe; }
-  .draft-btn-new:hover { background: #ede9fe; }
-  .draft-status { font-size: 12px; color: #94a3b8; margin-left: auto; }
-  .draft-status.saved { color: #16a34a; }
+  /* 草稿弹窗 */
   .draft-modal-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0,0,0,.4); z-index: 9999; display: flex;
@@ -532,18 +548,21 @@
 
 <div class="container">
 
-<!-- ===== 草稿管理栏 ===== -->
-<div class="draft-bar">
-  <span class="draft-label">草稿箱</span>
-  <select class="draft-select" id="draftSelect" onchange="onDraftSelectChange()">
+<!-- ===== 左侧草稿栏 ===== -->
+<div class="draft-sidebar">
+  <div class="draft-sidebar-title">草稿箱</div>
+  <select class="draft-sidebar-select" id="draftSelect" onchange="onDraftSelectChange()">
     <option value="">-- 选择草稿 --</option>
   </select>
-  <button class="draft-btn draft-btn-new" onclick="showNewDraftModal()">新建草稿</button>
-  <button class="draft-btn draft-btn-save" onclick="saveCurrentDraft()" id="draftSaveBtn" disabled>保存</button>
-  <button class="draft-btn draft-btn-load" onclick="loadSelectedDraft()" id="draftLoadBtn" disabled>加载</button>
-  <button class="draft-btn draft-btn-del" onclick="deleteSelectedDraft()" id="draftDelBtn" disabled>删除</button>
-  <span class="draft-status" id="draftStatus"></span>
+  <button class="draft-sidebar-btn draft-btn-new" onclick="showNewDraftModal()">新建草稿</button>
+  <button class="draft-sidebar-btn draft-btn-save" onclick="saveCurrentDraft()" id="draftSaveBtn" disabled>保存</button>
+  <button class="draft-sidebar-btn draft-btn-load" onclick="loadSelectedDraft()" id="draftLoadBtn" disabled>加载</button>
+  <button class="draft-sidebar-btn draft-btn-del" onclick="deleteSelectedDraft()" id="draftDelBtn" disabled>删除</button>
+  <span class="draft-sidebar-status" id="draftStatus"></span>
 </div>
+
+<!-- ===== 右侧主内容 ===== -->
+<div class="main-content">
 
 <!-- ===== 基础信息 ===== -->
 <div class="card">
@@ -785,6 +804,8 @@
     生成 Excel 文件
   </button>
   <p style="font-size:12px; color:#94a3b8; margin-top:12px;">生成格式与立项附件模板一致的 .xlsx 文件</p>
+</div>
+
 </div>
 
 </div>
@@ -1718,7 +1739,7 @@ function deleteSelectedDraft() {
 function showDraftStatus(text) {
   const el = document.getElementById('draftStatus');
   el.textContent = text;
-  el.className = 'draft-status' + (text === '已保存' ? ' saved' : '');
+  el.className = 'draft-sidebar-status' + (text === '已保存' ? ' saved' : '');
   clearTimeout(el._timer);
   el._timer = setTimeout(() => { el.textContent = ''; }, 3000);
 }
