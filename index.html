@@ -1784,9 +1784,13 @@ function showDraftStatus(text) {
 }
 
 function autoSaveDraft() {
-  if (!activeDraftId) return;
   const data = collectFormData();
-  localStorage.setItem(DRAFT_PREFIX + activeDraftId, JSON.stringify(data));
+  // 临时自动保存（无论是否有激活草稿）
+  localStorage.setItem('budget_temp_data', JSON.stringify(data));
+  // 如果有激活草稿，同时存到草稿
+  if (activeDraftId) {
+    localStorage.setItem(DRAFT_PREFIX + activeDraftId, JSON.stringify(data));
+  }
   showDraftStatus('自动保存');
 }
 
@@ -1832,11 +1836,25 @@ function initDrafts() {
         onDraftSelectChange();
         document.getElementById('draftSaveBtn').disabled = false;
         showDraftStatus('已恢复上次草稿');
+        return;
       }
     } catch (e) { /* ignore */ }
-  } else if (list.length > 0) {
-    // No active draft but drafts exist — just show them in select
   }
+
+  // 没有激活草稿，尝试恢复临时自动保存的数据
+  try {
+    const tempData = JSON.parse(localStorage.getItem('budget_temp_data'));
+    if (tempData) {
+      // 检查是否有实际数据（避免恢复空表单）
+      const hasData = tempData.contractAmount || tempData.projectName ||
+        tempData.kpiRows?.some(r => r.contract || r.weight) ||
+        tempData.calcData?.some(c => c.items?.some(i => i.price || i.qty));
+      if (hasData) {
+        applyFormData(tempData);
+        showDraftStatus('已恢复未保存数据');
+      }
+    }
+  } catch (e) { /* ignore */ }
 }
 
 initDrafts();
@@ -1895,9 +1913,10 @@ function confirmClearData() {
   recalcAll();
   updateFileName();
 
-  // 清除当前草稿关联
+  // 清除当前草稿关联和临时数据
   activeDraftId = null;
   localStorage.removeItem(DRAFT_ACTIVE_KEY);
+  localStorage.removeItem('budget_temp_data');
   document.getElementById('draftSelect').value = '';
   onDraftSelectChange();
   document.getElementById('draftSaveBtn').disabled = true;
