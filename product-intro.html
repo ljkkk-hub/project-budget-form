@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>项目立项预算表 - 产品说明</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;900&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif; background: #f0f4f8; color: #1e293b; -webkit-font-smoothing: antialiased; display: flex; justify-content: center; padding: 20px; }
+
+  .page {
+    width: 794px; /* A4 at 96dpi */
+    height: 1123px;
+    background: #fff;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 4px 24px rgba(0,0,0,.12);
+  }
+
+  /* ===== TOP BAR ===== */
+  .topbar {
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 40%, #2563eb 100%);
+    color: #fff;
+    padding: 28px 40px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .topbar::after {
+    content: '';
+    position: absolute;
+    top: -40px; right: -20px;
+    width: 180px; height: 180px;
+    background: radial-gradient(circle, rgba(96,165,250,.18) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .topbar-row { display: flex; align-items: center; justify-content: space-between; }
+  .topbar h1 { font-size: 26px; font-weight: 900; letter-spacing: 2px; }
+  .topbar .badge {
+    font-size: 10px; font-weight: 600; letter-spacing: 1.5px;
+    background: rgba(255,255,255,.12); backdrop-filter: blur(4px);
+    padding: 3px 12px; border-radius: 12px; color: #93c5fd;
+    border: 1px solid rgba(255,255,255,.1);
+  }
+  .topbar .desc { font-size: 13px; color: #93c5fd; margin-top: 8px; line-height: 1.5; }
+  .topbar .url-box {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12);
+    border-radius: 6px; padding: 4px 14px; font-size: 11.5px; color: #c7d9f5; font-weight: 500;
+    margin-top: 10px;
+  }
+  .topbar .url-box svg { flex-shrink: 0; opacity: .7; }
+
+  /* ===== BODY ===== */
+  .body { padding: 20px 36px 16px; }
+
+  /* ===== FEATURES ===== */
+  .section-label {
+    font-size: 13px; font-weight: 700; color: #0f172a;
+    display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
+  }
+  .section-label .dot {
+    width: 6px; height: 6px; border-radius: 50%; background: #3b82f6; flex-shrink: 0;
+  }
+
+  .features {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .feat {
+    border: 1px solid #e8ecf1; border-radius: 10px;
+    padding: 14px 14px 12px; position: relative; overflow: hidden;
+  }
+  .feat::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2.5px;
+  }
+  .feat-icon { font-size: 16px; margin-bottom: 8px; }
+  .feat h3 { font-size: 12.5px; font-weight: 700; color: #0f172a; margin-bottom: 4px; }
+  .feat p { font-size: 10.5px; color: #64748b; line-height: 1.6; }
+
+  .feat.blue::before { background: #3b82f6; }
+  .feat.green::before { background: #16a34a; }
+  .feat.purple::before { background: #7c3aed; }
+  .feat.amber::before { background: #f59e0b; }
+  .feat.pink::before { background: #ec4899; }
+  .feat.red::before { background: #ef4444; }
+
+  /* ===== FLOW ===== */
+  .flow-row {
+    display: flex; align-items: center; gap: 0; margin-bottom: 18px;
+    background: #f8fafc; border-radius: 10px; border: 1px solid #e8ecf1;
+    padding: 12px 16px;
+  }
+  .flow-step {
+    flex: 1; text-align: center; padding: 0 6px;
+  }
+  .flow-step .num {
+    width: 22px; height: 22px; border-radius: 50%; background: #3b82f6; color: #fff;
+    font-size: 11px; font-weight: 700; display: inline-flex; align-items: center;
+    justify-content: center; margin-bottom: 5px;
+  }
+  .flow-step h4 { font-size: 11.5px; font-weight: 700; color: #0f172a; margin-bottom: 2px; }
+  .flow-step p { font-size: 10px; color: #94a3b8; line-height: 1.4; }
+  .flow-arr { color: #cbd5e1; font-size: 16px; flex-shrink: 0; }
+
+  /* ===== METRICS ===== */
+  .metrics {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+    margin-bottom: 18px;
+  }
+  .metric {
+    border-radius: 10px; padding: 14px; text-align: center; border: 1px solid;
+  }
+  .metric-icon { font-size: 22px; margin-bottom: 6px; }
+  .metric h4 { font-size: 12px; font-weight: 700; margin-bottom: 5px; }
+  .metric .formula {
+    font-size: 10px; color: #64748b; background: rgba(0,0,0,.04);
+    padding: 3px 10px; border-radius: 5px; display: inline-block;
+    margin-bottom: 5px; font-family: 'Courier New', monospace; font-weight: 500;
+  }
+  .metric p { font-size: 10px; color: #94a3b8; line-height: 1.4; }
+
+  .metric.purple-bg { background: #faf5ff; border-color: #e9d5ff; }
+  .metric.purple-bg h4 { color: #7c3aed; }
+  .metric.green-bg { background: #f0fdf4; border-color: #bbf7d0; }
+  .metric.green-bg h4 { color: #16a34a; }
+  .metric.blue-bg { background: #eff6ff; border-color: #bfdbfe; }
+  .metric.blue-bg h4 { color: #2563eb; }
+
+  /* ===== NOTICE ===== */
+  .notice-box {
+    border-radius: 10px; overflow: hidden; border: 1px solid #fecaca; margin-bottom: 14px;
+  }
+  .notice-head {
+    background: linear-gradient(90deg, #fef2f2, #fff1f2);
+    padding: 8px 16px; font-size: 11px; font-weight: 700; color: #991b1b;
+    border-bottom: 1px solid #fecaca;
+  }
+  .notice-body { padding: 12px 16px; background: #fff; }
+  .notice-row { display: flex; gap: 10px; margin-bottom: 10px; }
+  .notice-row:last-child { margin-bottom: 0; }
+  .notice-num {
+    width: 20px; height: 20px; border-radius: 5px; background: #fef2f2;
+    border: 1px solid #fecaca; color: #dc2626; font-size: 10px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .notice-row h4 { font-size: 11px; font-weight: 700; color: #1e293b; margin-bottom: 2px; }
+  .notice-row p { font-size: 10px; color: #64748b; line-height: 1.5; }
+
+  /* ===== FOOTER ===== */
+  .footer {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: #0f172a; color: #475569; text-align: center; padding: 10px;
+    font-size: 10px;
+  }
+  .footer strong { color: #94a3b8; font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-row">
+      <h1>项目立项预算表</h1>
+      <span class="badge">INTERNAL TOOL</span>
+    </div>
+    <div class="desc">在线填写立项金额与 KPI 需求，实时追踪成本利润，一键导出标准 Excel 附件</div>
+    <div class="url-box">
+      <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+      ljkkk-hub.github.io/project-budget-form
+    </div>
+  </div>
+
+  <div class="body">
+
+    <!-- 核心功能 -->
+    <div class="section-label"><span class="dot"></span>核心功能</div>
+    <div class="features">
+      <div class="feat blue">
+        <div class="feat-icon">&#9201;</div>
+        <h3>实时计算</h3>
+        <p>合同金额、毛利率、实际成本填写即算，实时联动更新</p>
+      </div>
+      <div class="feat green">
+        <div class="feat-icon">&#10003;</div>
+        <h3>自动校验</h3>
+        <p>KPI 权重合计自动检查，计算器与手动填写自动比对</p>
+      </div>
+      <div class="feat purple">
+        <div class="feat-icon">&#128196;</div>
+        <h3>一键导出 Excel</h3>
+        <p>导出符合立项附件模板的 Excel 文件，含公式校验行</p>
+      </div>
+      <div class="feat amber">
+        <div class="feat-icon">&#128290;</div>
+        <h3>成本计算器</h3>
+        <p>六大成本分类独立计算，运营/投流/媒介按单价×次数</p>
+      </div>
+      <div class="feat pink">
+        <div class="feat-icon">&#128190;</div>
+        <h3>草稿管理</h3>
+        <p>多项目草稿随时切换，自动保存，关浏览器数据不丢失</p>
+      </div>
+      <div class="feat red">
+        <div class="feat-icon">&#9888;</div>
+        <h3>快捷操作</h3>
+        <p>一键清空当前数据重新开始，二次确认防误操作</p>
+      </div>
+    </div>
+
+    <!-- 使用流程 -->
+    <div class="section-label"><span class="dot"></span>使用流程</div>
+    <div class="flow-row">
+      <div class="flow-step">
+        <div class="num">1</div>
+        <h4>填写基础信息</h4>
+        <p>产品类型、合同金额<br>起止日期、毛利率</p>
+      </div>
+      <div class="flow-arr">&#10140;</div>
+      <div class="flow-step">
+        <div class="num">2</div>
+        <h4>设定 KPI 指标</h4>
+        <p>指标名称、合同额<br>占比、权重占比</p>
+      </div>
+      <div class="flow-arr">&#10140;</div>
+      <div class="flow-step">
+        <div class="num">3</div>
+        <h4>填写 / 计算成本</h4>
+        <p>月度明细预算 +<br>成本计算器细分</p>
+      </div>
+      <div class="flow-arr">&#10140;</div>
+      <div class="flow-step">
+        <div class="num">4</div>
+        <h4>导出 Excel</h4>
+        <p>一键生成标准附件<br>直接提交立项</p>
+      </div>
+    </div>
+
+    <!-- 三指标 -->
+    <div class="section-label"><span class="dot"></span>成本计算器 — 三个实时指标</div>
+    <div class="metrics">
+      <div class="metric purple-bg">
+        <div class="metric-icon">&#128176;</div>
+        <h4>合同剩余金额</h4>
+        <div class="formula">不含税收入 &#8722; 实际成本</div>
+        <p>反推合同利润空间<br>填完合同金额即显示</p>
+      </div>
+      <div class="metric green-bg">
+        <div class="metric-icon">&#128178;</div>
+        <h4>成本剩余</h4>
+        <div class="formula">实际成本 &#8722; 计算器总成本</div>
+        <p>计算器内剩余可用预算<br>实时扣减追踪</p>
+      </div>
+      <div class="metric blue-bg">
+        <div class="metric-icon">&#128201;</div>
+        <h4>当前利润率</h4>
+        <div class="formula">(收入 &#8722; 总成本) / 收入</div>
+        <p>蓝=达标 橙=未达标<br>红=成本超收入</p>
+      </div>
+    </div>
+
+    <!-- 注意事项 -->
+    <div class="section-label"><span class="dot"></span>注意事项</div>
+    <div class="notice-box">
+      <div class="notice-head">&#128274; 请仔细阅读以下内容，确保数据安全</div>
+      <div class="notice-body">
+        <div class="notice-row">
+          <div class="notice-num">1</div>
+          <div>
+            <h4>数据安全 — 天然隔离，无需担心</h4>
+            <p>所有数据仅保存在浏览器本地（localStorage），不上传任何服务器。不同电脑、不同浏览器数据不互通，各部门天然隔离。</p>
+          </div>
+        </div>
+        <div class="notice-row">
+          <div class="notice-num">2</div>
+          <div>
+            <h4>草稿自动保存 — 关网页不丢数据</h4>
+            <p>每次修改自动保存（2 秒延迟），关闭浏览器后重新打开数据自动恢复。建议重要数据手动「保存草稿」并命名。</p>
+          </div>
+        </div>
+        <div class="notice-row">
+          <div class="notice-num">3</div>
+          <div>
+            <h4>及时导出备份</h4>
+            <p>清除浏览器缓存/数据会导致草稿丢失，完成填写后请第一时间导出 Excel 文件留存。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <strong>项目立项预算表</strong> &middot; 产品说明 &middot; 内部使用
+  </div>
+
+</div>
+</body>
+</html>

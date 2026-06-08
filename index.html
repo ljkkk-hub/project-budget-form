@@ -97,37 +97,62 @@
   .container { max-width: 1480px; margin: 0 auto; padding: 32px 24px 60px; display: flex; gap: 20px; }
   .main-content { flex: 1; min-width: 0; }
   .draft-sidebar {
-    width: 200px; flex-shrink: 0; background: #fff; border-radius: 16px;
+    width: 240px; flex-shrink: 0; background: #fff; border-radius: 16px;
     border: 1px solid #e8ecf1; box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03);
-    padding: 20px 16px; display: flex; flex-direction: column; gap: 10px;
-    align-self: flex-start; position: sticky; top: 24px;
+    display: flex; flex-direction: column;
+    align-self: flex-start; position: sticky; top: 24px; max-height: calc(100vh - 48px);
   }
-  .draft-sidebar-title {
-    font-size: 15px; font-weight: 700; color: #1e293b; margin-bottom: 4px;
-    padding-bottom: 10px; border-bottom: 1.5px solid #e2e8f0;
+  .draft-sidebar-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 16px 12px; border-bottom: 1px solid #f1f3f6;
   }
-  .draft-sidebar-select {
-    width: 100%; padding: 6px 8px; font-size: 13px;
-    border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; color: #1e293b;
-    outline: none; cursor: pointer;
+  .draft-sidebar-title { font-size: 14px; font-weight: 700; color: #1e293b; }
+  .draft-new-btn {
+    width: 28px; height: 28px; border-radius: 8px; border: 1.5px solid #ddd6fe;
+    background: #f5f3ff; color: #7c3aed; font-size: 16px; font-weight: 700;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: all .15s; line-height: 1;
   }
-  .draft-sidebar-select:focus { border-color: #3b82f6; }
-  .draft-sidebar-btn {
-    width: 100%; padding: 6px 0; font-size: 13px; font-weight: 600;
-    border-radius: 6px; border: 1px solid; cursor: pointer; transition: all .15s;
-    text-align: center;
+  .draft-new-btn:hover { background: #ede9fe; border-color: #7c3aed; }
+  .draft-list { flex: 1; overflow-y: auto; padding: 8px; }
+  .draft-item {
+    position: relative; padding: 12px 32px 12px 12px; border-radius: 10px;
+    cursor: pointer; transition: all .15s; border: 1.5px solid transparent; margin-bottom: 4px;
   }
-  .draft-sidebar-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-  .draft-btn-new { background: #f5f3ff; color: #7c3aed; border-color: #ddd6fe; }
-  .draft-btn-new:hover:not(:disabled) { background: #ede9fe; }
-  .draft-btn-save { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
-  .draft-btn-save:hover:not(:disabled) { background: #dbeafe; }
-  .draft-btn-load { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; }
-  .draft-btn-load:hover:not(:disabled) { background: #dcfce7; }
-  .draft-btn-del { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
-  .draft-btn-del:hover:not(:disabled) { background: #fee2e2; }
-  .draft-sidebar-status { font-size: 12px; color: #94a3b8; text-align: center; margin-top: 4px; min-height: 18px; }
+  .draft-item:hover { background: #f8fafc; border-color: #e2e8f0; }
+  .draft-item.active { background: #eff6ff; border-color: #93c5fd; }
+  .draft-item.active::before {
+    content: ''; position: absolute; left: -1px; top: 8px; bottom: 8px;
+    width: 3px; border-radius: 2px; background: #3b82f6;
+  }
+  .draft-item-name {
+    font-size: 13px; font-weight: 600; color: #1e293b;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .draft-item.active .draft-item-name { color: #1d4ed8; }
+  .draft-item-meta {
+    font-size: 11px; color: #94a3b8; margin-top: 4px;
+    display: flex; gap: 8px; align-items: center;
+  }
+  .draft-item-amount { font-size: 11px; color: #64748b; font-weight: 500; }
+  .draft-item-del {
+    position: absolute; top: 10px; right: 10px;
+    width: 22px; height: 22px; border-radius: 6px;
+    background: transparent; border: none; color: #cbd5e1;
+    font-size: 14px; cursor: pointer; display: flex; align-items: center;
+    justify-content: center; transition: all .15s; opacity: 0;
+  }
+  .draft-item:hover .draft-item-del { opacity: 1; }
+  .draft-item-del:hover { background: #fef2f2; color: #ef4444; }
+  .draft-sidebar-status {
+    font-size: 11px; color: #94a3b8; text-align: center;
+    padding: 8px; border-top: 1px solid #f1f3f6; min-height: 32px;
+  }
   .draft-sidebar-status.saved { color: #16a34a; }
+  .draft-empty {
+    text-align: center; padding: 24px 12px; color: #94a3b8;
+    font-size: 12px; line-height: 1.6;
+  }
 
   /* ========== 右侧工具栏 ========== */
   .right-sidebar {
@@ -523,11 +548,9 @@
     .grid-3 { grid-template-columns: 1fr; }
     .grid-2-3 { grid-template-columns: 1fr; }
     .container { flex-direction: column; }
-    .draft-sidebar { width: 100%; position: static; flex-direction: row; flex-wrap: wrap; align-items: center; padding: 12px 16px; }
-    .draft-sidebar-title { margin-bottom: 0; padding-bottom: 0; border-bottom: none; flex-shrink: 0; }
-    .draft-sidebar-select { flex: 1; min-width: 140px; max-width: 260px; }
-    .draft-sidebar-btn { width: auto; padding: 5px 12px; }
-    .draft-sidebar-status { margin-top: 0; margin-left: auto; }
+    .draft-sidebar { width: 100%; position: static; max-height: none; }
+    .draft-list { display: flex; flex-wrap: wrap; gap: 4px; }
+    .draft-item { flex: 1; min-width: 120px; max-width: 200px; }
     .right-sidebar { width: 100%; position: static; flex-direction: row; align-items: center; }
     .right-sidebar-card { padding: 12px 16px; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 12px; }
     .right-sidebar-title { padding-bottom: 0; border-bottom: none; flex-shrink: 0; }
@@ -580,15 +603,12 @@
 
 <!-- ===== 左侧草稿栏 ===== -->
 <div class="draft-sidebar">
-  <div class="draft-sidebar-title">草稿箱</div>
-  <select class="draft-sidebar-select" id="draftSelect" onchange="onDraftSelectChange()">
-    <option value="">-- 选择草稿 --</option>
-  </select>
-  <button class="draft-sidebar-btn draft-btn-new" onclick="showNewDraftModal()">新建草稿</button>
-  <button class="draft-sidebar-btn draft-btn-save" onclick="saveCurrentDraft()" id="draftSaveBtn" disabled>保存</button>
-  <button class="draft-sidebar-btn draft-btn-load" onclick="loadSelectedDraft()" id="draftLoadBtn" disabled>加载</button>
-  <button class="draft-sidebar-btn draft-btn-del" onclick="deleteSelectedDraft()" id="draftDelBtn" disabled>删除</button>
-  <span class="draft-sidebar-status" id="draftStatus"></span>
+  <div class="draft-sidebar-header">
+    <div class="draft-sidebar-title">📋 草稿箱</div>
+    <button class="draft-new-btn" onclick="showNewDraftModal()" title="新建草稿">＋</button>
+  </div>
+  <div class="draft-list" id="draftList"></div>
+  <div class="draft-sidebar-status" id="draftStatus"></div>
 </div>
 
 <!-- ===== 右侧主内容 ===== -->
@@ -1579,6 +1599,9 @@ const DRAFT_LIST_KEY = 'budget_draft_list';
 const DRAFT_ACTIVE_KEY = 'budget_draft_active';
 let activeDraftId = null;
 let autoSaveTimer = null;
+let draftDirty = false; // Track unsaved changes
+
+function escHtml(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 function getDraftList() {
   try { return JSON.parse(localStorage.getItem(DRAFT_LIST_KEY)) || []; }
@@ -1619,13 +1642,11 @@ function applyFormData(data) {
   document.getElementById('marginRate').value = data.marginRate || '';
   document.getElementById('contractAmount').value = data.contractAmount || '';
 
-  // KPI
   if (data.kpiRows && data.kpiRows.length) {
     kpiRows = data.kpiRows.map(r => ({ id: kpiIdCounter++, name: r.name || '', contract: r.contract || '', weight: r.weight || '' }));
     renderKpi();
   }
 
-  // 成本表
   if (data.costTable) {
     COST_TYPES.forEach((_, ri) => {
       for (let m = 1; m <= 12; m++) {
@@ -1635,7 +1656,6 @@ function applyFormData(data) {
     });
   }
 
-  // 计算器
   if (data.calcData) {
     calcData = JSON.parse(JSON.stringify(data.calcData));
     renderCalculator();
@@ -1645,30 +1665,172 @@ function applyFormData(data) {
   updateFileName();
 }
 
-function refreshDraftSelect() {
-  const sel = document.getElementById('draftSelect');
+function renderDraftList() {
+  const container = document.getElementById('draftList');
   const list = getDraftList();
-  const curVal = sel.value;
-  sel.innerHTML = '<option value="">-- 选择草稿 --</option>';
+
+  if (list.length === 0) {
+    container.innerHTML = '<div class="draft-empty">暂无草稿<br>点击右上角 ＋ 新建</div>';
+    return;
+  }
+
+  container.innerHTML = '';
   list.forEach(d => {
-    const opt = document.createElement('option');
-    opt.value = d.id;
-    opt.textContent = d.name + (d.time ? ` (${d.time})` : '');
-    sel.appendChild(opt);
+    const item = document.createElement('div');
+    item.className = 'draft-item' + (d.id === activeDraftId ? ' active' : '');
+
+    // Load draft data to show contract amount
+    let amountStr = '';
+    try {
+      const dData = JSON.parse(localStorage.getItem(DRAFT_PREFIX + d.id));
+      if (dData && dData.contractAmount) {
+        const amt = parseFloat(dData.contractAmount) || 0;
+        if (amt > 0) amountStr = '¥' + amt.toLocaleString('zh-CN', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+      }
+    } catch {}
+
+    item.innerHTML = `
+      <div class="draft-item-name">${escHtml(d.name)}</div>
+      <div class="draft-item-meta">
+        ${d.time || ''}
+        ${amountStr ? `<span class="draft-item-amount">${amountStr}</span>` : ''}
+      </div>
+      <button class="draft-item-del" onclick="event.stopPropagation();deleteDraft('${d.id}','${escHtml(d.name)}')" title="删除草稿">×</button>
+    `;
+    item.onclick = () => switchToDraft(d.id);
+    container.appendChild(item);
   });
-  if (curVal && list.some(d => d.id === curVal)) sel.value = curVal;
-  onDraftSelectChange();
 }
 
-function onDraftSelectChange() {
-  const sel = document.getElementById('draftSelect');
-  const hasSelection = !!sel.value;
-  document.getElementById('draftLoadBtn').disabled = !hasSelection;
-  document.getElementById('draftDelBtn').disabled = !hasSelection;
+/* ===== 切换草稿 + 保存确认 ===== */
+function switchToDraft(targetId) {
+  if (targetId === activeDraftId) return;
+
+  // 有未保存的修改 & 当前有激活草稿
+  if (draftDirty && activeDraftId) {
+    showSwitchConfirmModal(targetId);
+    return;
+  }
+
+  // 没有激活草稿但表单有数据
+  if (!activeDraftId && hasFormData()) {
+    showNoDraftSwitchModal(targetId);
+    return;
+  }
+
+  doSwitchToDraft(targetId);
+}
+
+function hasFormData() {
+  return !!(document.getElementById('contractAmount').value ||
+    document.getElementById('projectName').value ||
+    kpiRows.some(r => r.contract || r.weight) ||
+    calcData.some(c => c.items.some(i => i.price || i.qty)));
+}
+
+function showSwitchConfirmModal(targetId) {
+  const targetName = getDraftList().find(d => d.id === targetId)?.name || '未命名';
+  const overlay = document.createElement('div');
+  overlay.className = 'draft-modal-overlay';
+  overlay.id = 'switchModalOverlay';
+  overlay.innerHTML = `
+    <div class="draft-modal">
+      <h3>切换草稿</h3>
+      <p style="font-size:14px;color:#64748b;margin:0 0 16px;line-height:1.6">当前草稿有未保存的修改，是否保存后再切换到「${escHtml(targetName)}」？</p>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button class="draft-modal-confirm" style="width:100%" onclick="flushSaveAndSwitch('${targetId}')">💾 保存并切换</button>
+        <button style="width:100%;padding:6px 16px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid #fecaca;background:#fef2f2;color:#dc2626" onclick="discardAndSwitch('${targetId}')">不保存直接切换</button>
+        <button class="draft-modal-cancel" style="width:100%" onclick="closeSwitchModal()">取消</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+}
+
+function showNoDraftSwitchModal(targetId) {
+  const targetName = getDraftList().find(d => d.id === targetId)?.name || '未命名';
+  const overlay = document.createElement('div');
+  overlay.className = 'draft-modal-overlay';
+  overlay.id = 'switchModalOverlay';
+  overlay.innerHTML = `
+    <div class="draft-modal">
+      <h3>切换草稿</h3>
+      <p style="font-size:14px;color:#64748b;margin:0 0 16px;line-height:1.6">当前有未保存的数据，切换到「${escHtml(targetName)}」后数据将被替换。是否先保存为草稿？</p>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button class="draft-modal-confirm" style="width:100%" onclick="saveAsDraftAndSwitch('${targetId}')">💾 保存为新草稿并切换</button>
+        <button style="width:100%;padding:6px 16px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid #fecaca;background:#fef2f2;color:#dc2626" onclick="discardAndSwitch('${targetId}')">直接切换（数据将丢失）</button>
+        <button class="draft-modal-cancel" style="width:100%" onclick="closeSwitchModal()">取消</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+}
+
+function flushSaveAndSwitch(targetId) {
+  closeSwitchModal();
+  clearTimeout(autoSaveTimer);
+  autoSaveTimer = null;
+  autoSaveDraft();
+  doSwitchToDraft(targetId);
+}
+
+function saveAsDraftAndSwitch(targetId) {
+  closeSwitchModal();
+  const name = document.getElementById('projectName').value || ('草稿 ' + new Date().toLocaleDateString('zh-CN'));
+  const id = 'draft_' + Date.now();
+  const time = new Date().toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+  const data = collectFormData();
+  localStorage.setItem(DRAFT_PREFIX + id, JSON.stringify(data));
+  const list = getDraftList();
+  list.unshift({ id, name, time });
+  setDraftList(list);
+  showDraftStatus('已保存为新草稿');
+  doSwitchToDraft(targetId);
+}
+
+function discardAndSwitch(targetId) {
+  closeSwitchModal();
+  clearTimeout(autoSaveTimer);
+  autoSaveTimer = null;
+  draftDirty = false;
+  doSwitchToDraft(targetId);
+}
+
+function closeSwitchModal() {
+  const overlay = document.getElementById('switchModalOverlay');
+  if (overlay) overlay.remove();
+}
+
+function doSwitchToDraft(targetId) {
+  try {
+    const data = JSON.parse(localStorage.getItem(DRAFT_PREFIX + targetId));
+    if (!data) { showDraftStatus('草稿数据为空'); return; }
+    applyFormData(data);
+    activeDraftId = targetId;
+    draftDirty = false;
+    localStorage.setItem(DRAFT_ACTIVE_KEY, targetId);
+    renderDraftList();
+    showDraftStatus('已加载');
+  } catch (e) {
+    showDraftStatus('加载失败');
+  }
+}
+
+function deleteDraft(id, name) {
+  if (!confirm(`确定删除草稿「${name}」吗？`)) return;
+  localStorage.removeItem(DRAFT_PREFIX + id);
+  const list = getDraftList().filter(d => d.id !== id);
+  setDraftList(list);
+  if (activeDraftId === id) {
+    activeDraftId = null;
+    draftDirty = false;
+    localStorage.removeItem(DRAFT_ACTIVE_KEY);
+  }
+  renderDraftList();
+  showDraftStatus('已删除');
 }
 
 function showNewDraftModal() {
-  // 用默认名称：项目名 or 日期
   const projName = document.getElementById('projectName').value || '';
   const defaultName = projName || ('草稿 ' + new Date().toLocaleDateString('zh-CN'));
   const overlay = document.createElement('div');
@@ -1699,23 +1861,14 @@ function confirmNewDraft() {
   const id = 'draft_' + Date.now();
   const time = new Date().toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
   const data = collectFormData();
-
-  // Save data
   localStorage.setItem(DRAFT_PREFIX + id, JSON.stringify(data));
-
-  // Update list
   const list = getDraftList();
   list.unshift({ id, name, time });
   setDraftList(list);
-
-  // Set active
   activeDraftId = id;
+  draftDirty = false;
   localStorage.setItem(DRAFT_ACTIVE_KEY, id);
-
-  refreshDraftSelect();
-  document.getElementById('draftSelect').value = id;
-  onDraftSelectChange();
-  document.getElementById('draftSaveBtn').disabled = false;
+  renderDraftList();
   showDraftStatus('已保存');
 }
 
@@ -1726,103 +1879,63 @@ function saveCurrentDraft() {
   }
   const data = collectFormData();
   localStorage.setItem(DRAFT_PREFIX + activeDraftId, JSON.stringify(data));
-
-  // Update time
   const list = getDraftList();
   const item = list.find(d => d.id === activeDraftId);
   if (item) {
     item.time = new Date().toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
     setDraftList(list);
-    refreshDraftSelect();
-    document.getElementById('draftSelect').value = activeDraftId;
   }
+  draftDirty = false;
+  renderDraftList();
   showDraftStatus('已保存');
-}
-
-function loadSelectedDraft() {
-  const id = document.getElementById('draftSelect').value;
-  if (!id) return;
-  try {
-    const data = JSON.parse(localStorage.getItem(DRAFT_PREFIX + id));
-    if (!data) { showDraftStatus('草稿数据为空'); return; }
-    applyFormData(data);
-    activeDraftId = id;
-    localStorage.setItem(DRAFT_ACTIVE_KEY, id);
-    document.getElementById('draftSaveBtn').disabled = false;
-    showDraftStatus('已加载');
-  } catch (e) {
-    showDraftStatus('加载失败');
-  }
-}
-
-function deleteSelectedDraft() {
-  const id = document.getElementById('draftSelect').value;
-  if (!id) return;
-  const name = document.getElementById('draftSelect').selectedOptions[0]?.textContent || '';
-  if (!confirm(`确定删除草稿「${name}」吗？`)) return;
-
-  localStorage.removeItem(DRAFT_PREFIX + id);
-  const list = getDraftList().filter(d => d.id !== id);
-  setDraftList(list);
-
-  if (activeDraftId === id) {
-    activeDraftId = null;
-    localStorage.removeItem(DRAFT_ACTIVE_KEY);
-    document.getElementById('draftSaveBtn').disabled = true;
-  }
-
-  refreshDraftSelect();
-  showDraftStatus('已删除');
 }
 
 function showDraftStatus(text) {
   const el = document.getElementById('draftStatus');
   el.textContent = text;
-  el.className = 'draft-sidebar-status' + (text === '已保存' ? ' saved' : '');
+  el.className = 'draft-sidebar-status' + (text === '已保存' || text === '自动保存' ? ' saved' : '');
   clearTimeout(el._timer);
   el._timer = setTimeout(() => { el.textContent = ''; }, 3000);
 }
 
 function autoSaveDraft() {
   const data = collectFormData();
-  // 临时自动保存（无论是否有激活草稿）
   localStorage.setItem('budget_temp_data', JSON.stringify(data));
-  // 如果有激活草稿，同时存到草稿
   if (activeDraftId) {
     localStorage.setItem(DRAFT_PREFIX + activeDraftId, JSON.stringify(data));
   }
+  draftDirty = false;
   showDraftStatus('自动保存');
 }
 
 function scheduleAutoSave() {
   clearTimeout(autoSaveTimer);
+  draftDirty = true;
   autoSaveTimer = setTimeout(autoSaveDraft, 2000);
 }
 
-// Hook into recalcAll for auto-save
+// Hook auto-save into recalc functions
 const _origRecalcAll = recalcAll;
 recalcAll = function() {
   _origRecalcAll();
   scheduleAutoSave();
 };
 
-// Hook into recalcCost for auto-save (cost table input changes)
 const _origRecalcCost = recalcCost;
 recalcCost = function() {
   _origRecalcCost();
   scheduleAutoSave();
 };
 
-// Hook into recalcCalculator for auto-save
 const _origRecalcCalculator = recalcCalculator;
 recalcCalculator = function() {
   _origRecalcCalculator();
   scheduleAutoSave();
 };
 
-// On page load: restore active draft or last draft
+// On page load: restore active draft or temp data
 function initDrafts() {
-  refreshDraftSelect();
+  renderDraftList();
   const activeId = localStorage.getItem(DRAFT_ACTIVE_KEY);
   const list = getDraftList();
 
@@ -1832,9 +1945,8 @@ function initDrafts() {
       if (data) {
         applyFormData(data);
         activeDraftId = activeId;
-        document.getElementById('draftSelect').value = activeId;
-        onDraftSelectChange();
-        document.getElementById('draftSaveBtn').disabled = false;
+        draftDirty = false;
+        renderDraftList();
         showDraftStatus('已恢复上次草稿');
         return;
       }
@@ -1845,7 +1957,6 @@ function initDrafts() {
   try {
     const tempData = JSON.parse(localStorage.getItem('budget_temp_data'));
     if (tempData) {
-      // 检查是否有实际数据（避免恢复空表单）
       const hasData = tempData.contractAmount || tempData.projectName ||
         tempData.kpiRows?.some(r => r.contract || r.weight) ||
         tempData.calcData?.some(c => c.items?.some(i => i.price || i.qty));
@@ -1915,11 +2026,10 @@ function confirmClearData() {
 
   // 清除当前草稿关联和临时数据
   activeDraftId = null;
+  draftDirty = false;
   localStorage.removeItem(DRAFT_ACTIVE_KEY);
   localStorage.removeItem('budget_temp_data');
-  document.getElementById('draftSelect').value = '';
-  onDraftSelectChange();
-  document.getElementById('draftSaveBtn').disabled = true;
+  renderDraftList();
   showDraftStatus('已清空');
 }
 </script>
