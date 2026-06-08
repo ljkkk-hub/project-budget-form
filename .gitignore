@@ -1,0 +1,12 @@
+# WorkBuddy local data
+.workbuddy/
+
+# Playwright CLI cache
+.playwright-cli/
+
+# Test/reference screenshots
+*.png
+
+# Reference files
+product-intro_扫描版.pdf
+tutorial.md
