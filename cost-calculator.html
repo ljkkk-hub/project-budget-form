@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>成本计算器</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;900&display=swap');
+  * { box-sizing: border-box; }
+  body { font-family: 'Noto Sans SC', -apple-system, sans-serif; background: #f5f7fa; margin: 0; }
+
+  /* ========== 头部 ========== */
+  .hero {
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 40%, #2563eb 100%);
+    color: #fff;
+    padding: 48px 24px 56px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -20%;
+    width: 60%;
+    height: 200%;
+    background: radial-gradient(ellipse at center, rgba(255,255,255,0.08) 0%, transparent 70%);
+    transform: rotate(-15deg);
+  }
+  .hero h1 {
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    margin: 0 0 10px;
+    position: relative;
+    z-index: 1;
+  }
+  .hero .subtitle {
+    font-size: 15px;
+    color: rgba(255,255,255,0.7);
+    font-weight: 400;
+    position: relative;
+    z-index: 1;
+  }
+  .hero .badge-bar {
+    display: inline-flex;
+    gap: 16px;
+    margin-top: 18px;
+    position: relative;
+    z-index: 1;
+  }
+  .hero .badge-bar span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.85);
+    background: rgba(255,255,255,0.1);
+    padding: 5px 14px;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.15);
+    backdrop-filter: blur(4px);
+  }
+
+  /* ========== 一言 ========== */
+  .hitokoto-wrap {
+    position: absolute;
+    top: 16px;
+    right: 28px;
+    max-width: 480px;
+    text-align: right;
+    z-index: 2;
+    cursor: pointer;
+    transition: opacity .2s;
+  }
+  .hitokoto-wrap:hover { opacity: 0.85; }
+  .hitokoto-text {
+    font-size: 16px;
+    color: rgba(255,255,255,0.88);
+    line-height: 1.7;
+    font-weight: 400;
+    font-style: italic;
+    margin: 0;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+  .hitokoto-from {
+    font-size: 13px;
+    color: rgba(255,255,255,0.55);
+    margin-top: 6px;
+    font-style: normal;
+    font-weight: 300;
+  }
+
+  /* ========== 容器 ========== */
+  .container { max-width: 1280px; margin: 0 auto; padding: 32px 24px 60px; }
+
+  /* ========== 卡片 ========== */
+  .card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03);
+    border: 1px solid #e8ecf1;
+    overflow: hidden;
+  }
+  .card + .card { margin-top: 24px; }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 28px;
+    border-bottom: 1px solid #f1f3f6;
+    background: #fafbfd;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .card-header .title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 17px;
+    font-weight: 700;
+    color: #1e293b;
+  }
+  .card-header .title .icon {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .card-body { padding: 28px; }
+
+  /* ========== 表单 ========== */
+  .form-group { margin-bottom: 0; }
+  .form-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 7px;
+    letter-spacing: 0.02em;
+  }
+  .form-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 14px;
+    color: #1e293b;
+    background: #fff;
+    transition: all .15s ease;
+    outline: none;
+    font-family: inherit;
+  }
+  .form-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+  }
+  .form-input::placeholder { color: #cbd5e1; }
+  .form-input-number { text-align: right; font-family: 'Noto Sans SC', monospace; }
+
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+  input[type="number"] { -moz-appearance: textfield; }
+
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+
+  /* ========== 指标卡片 ========== */
+  .metric-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .metric-card {
+    border-radius: 12px;
+    padding: 18px 20px;
+    border: 1.5px solid;
+    position: relative;
+    overflow: hidden;
+  }
+  .metric-card .metric-label {
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .metric-card .metric-value {
+    font-size: 22px;
+    font-weight: 800;
+    font-family: 'Noto Sans SC', monospace;
+    letter-spacing: -0.5px;
+  }
+  .metric-card .metric-formula {
+    font-size: 11px;
+    margin-top: 4px;
+    opacity: 0.7;
+  }
+  .metric-card.actual {
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    border-color: #93c5fd;
+  }
+  .metric-card.actual .metric-label { color: #1e40af; }
+  .metric-card.actual .metric-value { color: #1d4ed8; }
+  .metric-card.calc {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    border-color: #86efac;
+  }
+  .metric-card.calc .metric-label { color: #166534; }
+  .metric-card.calc .metric-value { color: #15803d; }
+  .metric-card.remain {
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    border-color: #fcd34d;
+  }
+  .metric-card.remain .metric-label { color: #92400e; }
+  .metric-card.remain .metric-value { color: #b45309; }
+  .metric-card.profit {
+    background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+    border-color: #c4b5fd;
+  }
+  .metric-card.profit .metric-label { color: #5b21b6; }
+  .metric-card.profit .metric-value { color: #6d28d9; }
+  .metric-card.danger {
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%) !important;
+    border-color: #fca5a5 !important;
+  }
+  .metric-card.danger .metric-label { color: #991b1b !important; }
+  .metric-card.danger .metric-value { color: #dc2626 !important; }
+
+  /* ========== 成本计算器 ========== */
+  .calc-section { border: 1.5px solid #e2e8f0; border-radius: 12px; margin-bottom: 16px; overflow: hidden; }
+  .calc-section:last-child { margin-bottom: 0; }
+  .calc-section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px; background: #f8fafc; cursor: pointer;
+    border-bottom: 1.5px solid #e2e8f0; transition: background .15s;
+    flex-wrap: wrap; gap: 10px;
+  }
+  .calc-section-header:hover { background: #f1f5f9; }
+  .calc-section-header .name { font-size: 15px; font-weight: 700; color: #1e293b; }
+  .calc-section-header .total { font-size: 15px; font-weight: 700; color: #1d4ed8; font-family: 'Noto Sans SC', monospace; }
+  .calc-remain { font-size: 13px; font-weight: 700; color: #16a34a; padding: 2px 8px; background: #f0fdf4; border-radius: 6px; border: 1px solid #bbf7d0; white-space: nowrap; }
+  .calc-profit { font-size: 13px; font-weight: 700; color: #2563eb; padding: 2px 8px; background: #eff6ff; border-radius: 6px; border: 1px solid #bfdbfe; white-space: nowrap; }
+  .calc-contract { font-size: 13px; font-weight: 700; color: #7c3aed; padding: 2px 8px; background: #f5f3ff; border-radius: 6px; border: 1px solid #ddd6fe; white-space: nowrap; }
+  .calc-section-body { padding: 16px 20px; }
+  .calc-section-body.collapsed { display: none; }
+  .calc-tbl { border-collapse: collapse; width: 100%; }
+  .calc-tbl th {
+    background: #1e3a5f; color: #fff; font-weight: 600; font-size: 12px;
+    padding: 9px 8px; text-align: center; white-space: nowrap; border: 1px solid #1e3a5f;
+  }
+  .calc-tbl td { border: 1px solid #e2e8f0; padding: 0; font-size: 13px; vertical-align: middle; }
+  .calc-tbl .calc-input {
+    width: 100%; padding: 7px 8px; border: none; outline: none;
+    font-size: 13px; font-family: inherit; background: #fffbeb;
+    text-align: center; transition: background .1s;
+  }
+  .calc-tbl .calc-input:focus { background: #fef3c7; box-shadow: inset 0 0 0 2px #f59e0b; }
+  .calc-tbl .calc-input-name { text-align: center; }
+  .calc-tbl .calc-input-num { text-align: center; font-variant-numeric: tabular-nums; }
+  .calc-tbl .calc-total {
+    background: #f1f5f9; text-align: center; padding: 7px 10px;
+    color: #475569; font-variant-numeric: tabular-nums; font-weight: 600;
+    font-size: 13px;
+  }
+  .calc-tbl .calc-del { opacity: 0; cursor: pointer; color: #cbd5e1; font-size: 16px;
+    padding: 2px 8px; transition: all .15s; text-align: center; display: block; }
+  .calc-tbl tr:hover .calc-del { opacity: 1; }
+  .calc-tbl .calc-del:hover { color: #ef4444; }
+  .calc-section-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: 12px;
+  }
+  .calc-toggle-icon { font-size: 12px; color: #94a3b8; transition: transform .2s; }
+  .calc-toggle-icon.rotated { transform: rotate(-90deg); }
+  .calc-grand-total {
+    margin-top: 20px; padding: 16px 24px; border-radius: 10px;
+    background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+    color: #fff; display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 10px;
+  }
+  .calc-grand-total .label { font-size: 14px; font-weight: 600; }
+  .calc-grand-total .value { font-size: 22px; font-weight: 800; font-family: 'Noto Sans SC', monospace; }
+
+  /* ========== 按钮 ========== */
+  .add-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: #2563eb;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 16px;
+    border: 1.5px dashed #93c5fd;
+    border-radius: 8px;
+    background: #fff;
+    cursor: pointer;
+    transition: all .15s ease;
+  }
+  .add-row:hover { background: #eff6ff; border-color: #2563eb; color: #1e3a5f; }
+
+  .btn-reset {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    border-radius: 8px;
+    border: 1px solid #fecaca;
+    background: #fef2f2;
+    color: #dc2626;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .btn-reset:hover { background: #fee2e2; }
+
+  .tip { font-size: 11px; color: #94a3b8; display: inline-flex; align-items: center; gap: 5px; }
+  .tip-dot { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
+
+  /* ========== 响应式 ========== */
+  @media (max-width: 1024px) {
+    .grid-3 { grid-template-columns: 1fr; }
+    .grid-2 { grid-template-columns: 1fr; }
+    .metric-grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 640px) {
+    .metric-grid { grid-template-columns: 1fr; }
+    .hitokoto-wrap { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== 头部 ===== -->
+<div class="hero">
+  <div class="hitokoto-wrap" id="hitokotoWrap" onclick="fetchHitokoto()" title="点击换一条">
+    <p class="hitokoto-text" id="hitokotoText">加载中...</p>
+    <p class="hitokoto-from" id="hitokotoFrom"></p>
+  </div>
+  <h1>成本计算器</h1>
+  <p class="subtitle">六大成本分类 · 实时计算总价与利润率</p>
+  <div class="badge-bar">
+    <span>🧮 实时计算</span>
+    <span>📊 利润率监控</span>
+    <span>➕ 自由增删子项</span>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- ===== 项目参数 ===== -->
+<div class="card">
+  <div class="card-header">
+    <div class="title">
+      <div class="icon" style="background:#dbeafe;color:#2563eb">📝</div>
+      项目参数
+    </div>
+    <div class="tip"><span class="tip-dot" style="background:#fffbeb;border:1px solid #fde68a"></span>黄色区域可编辑</div>
+  </div>
+  <div class="card-body">
+    <div class="grid-2">
+      <div class="form-group">
+        <label class="form-label">项目合同收入金额（元）</label>
+        <input id="contractAmount" type="number" placeholder="0.00" min="0" step="0.01"
+          class="form-input form-input-number" oninput="recalcCalculator()">
+      </div>
+      <div class="form-group">
+        <label class="form-label">目标毛利率（%）</label>
+        <input id="marginRate" type="number" placeholder="例如 25" min="0" max="100" step="0.01"
+          class="form-input form-input-number" oninput="recalcCalculator()">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 实时指标 ===== -->
+<div class="card">
+  <div class="card-header">
+    <div class="title">
+      <div class="icon" style="background:#fef3c7;color:#d97706">📈</div>
+      实时指标
+    </div>
+    <div style="font-size:12px;color:#94a3b8">填写合同金额与成本后自动更新</div>
+  </div>
+  <div class="card-body">
+    <div class="metric-grid">
+      <div class="metric-card actual">
+        <div class="metric-label">💰 实际成本参考</div>
+        <div class="metric-value" id="metricActual">¥0.00</div>
+        <div class="metric-formula">合同金额 ÷ 1.06 × (1 − 毛利率)</div>
+      </div>
+      <div class="metric-card calc">
+        <div class="metric-label">🧮 计算器合计</div>
+        <div class="metric-value" id="metricCalc">¥0.00</div>
+        <div class="metric-formula">六大成本分类之和</div>
+      </div>
+      <div class="metric-card remain" id="metricCardRemain">
+        <div class="metric-label">⚖️ 成本剩余</div>
+        <div class="metric-value" id="metricRemain">¥0.00</div>
+        <div class="metric-formula">实际成本 − 计算器合计</div>
+      </div>
+      <div class="metric-card profit" id="metricCardProfit">
+        <div class="metric-label">📊 当前利润率</div>
+        <div class="metric-value" id="metricProfit">—</div>
+        <div class="metric-formula">(不含税收入 − 计算器合计) / 不含税收入</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 成本计算器 ===== -->
+<div class="card">
+  <div class="card-header">
+    <div class="title">
+      <div class="icon" style="background:#dbeafe;color:#2563eb">🧮</div>
+      成本计算器
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <span class="tip"><span class="tip-dot" style="background:#fffbeb;border:1px solid #fde68a"></span>黄色区域可编辑</span>
+      <span class="tip"><span class="tip-dot" style="background:#f1f5f9;border:1px solid #e2e8f0"></span>灰色区域自动计算</span>
+      <button class="btn-reset" onclick="resetCalculator()">
+        <span style="font-size:14px">↻</span> 重置计算器
+      </button>
+    </div>
+  </div>
+  <div class="card-body">
+    <div id="calcContainer"></div>
+    <div class="calc-grand-total">
+      <span class="label">计算器总合计</span>
+      <span class="value" id="calcGrandTotalValue">¥0.00</span>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+/* ========== 数据预设 ========== */
+const COST_TYPES = [
+  { name: '外部分包成本', note: '包含主播、演员、写手、摄影等外协人员以及其他外部分包成本' },
+  { name: '运营服务成本', note: '' },
+  { name: '投流成本', note: '投流平台充值的费用' },
+  { name: '媒介成本', note: '从蒲公英、星图等平台下单达人的成本' },
+  { name: '其他成本', note: '除其他5项成本以外的归到这一类' },
+  { name: '人力成本', note: '' }
+];
+
+const CALC_PRESETS = [
+  { name: '外部分包成本', items: [
+    { name: '摄影', price: '', unit: '天/人', qty: '', days: '' },
+    { name: '演员', price: '', unit: '天/人', qty: '', days: '' },
+    { name: '剪辑', price: '', unit: '天/人次', qty: '', days: '' },
+    { name: '撰稿', price: '', unit: '天/人次', qty: '', days: '' },
+    { name: '设计', price: '', unit: '天/人次', qty: '', days: '' }
+  ]},
+  { name: '运营服务成本', items: [
+    { name: '数据维护费用', price: '', unit: '月/次', qty: '', days: '' }
+  ]},
+  { name: '投流成本', items: [
+    { name: '抖音', price: '', unit: '', qty: '', days: '' },
+    { name: '小红书', price: '', unit: '', qty: '', days: '' },
+    { name: '视频号', price: '', unit: '', qty: '', days: '' }
+  ]},
+  { name: '媒介成本', items: [
+    { name: '蒲公英下单', price: '', unit: '', qty: '', days: '' },
+    { name: '小红星平台下单', price: '', unit: '', qty: '', days: '' }
+  ]},
+  { name: '其他成本', items: [
+    { name: '道具', price: '', unit: '天/次', qty: '', days: '' },
+    { name: '场地租金', price: '', unit: '天/次', qty: '', days: '' },
+    { name: '交通', price: '', unit: '天/次', qty: '', days: '' },
+    { name: '外拍餐补', price: '', unit: '天/人', qty: '', days: '' },
+    { name: '奖品', price: '', unit: '月/次', qty: '', days: '' },
+    { name: '手机卡实名、账号实名', price: '', unit: '', qty: '', days: '' }
+  ]},
+  { name: '人力成本', items: [
+    { name: '编导+剪辑+运营', price: '', unit: '月/次', qty: '', days: '' }
+  ]}
+];
+
+let calcData = JSON.parse(JSON.stringify(CALC_PRESETS));
+
+/* 简化模式（ci=1,2,3）：单价×次数；其他：单价×数量×天数 */
+const SIMPLE_INDICES = [1, 2, 3];
+
+const fmt = v => v.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmtY = v => `¥${fmt(v)}`;
+const esc = s => (s || '').replace(/"/g, '&quot;');
+
+/* ========== 渲染计算器 ========== */
+function renderCalculator() {
+  const container = document.getElementById('calcContainer');
+  container.innerHTML = '';
+  calcData.forEach((cat, ci) => {
+    const section = document.createElement('div');
+    section.className = 'calc-section';
+    section.innerHTML = `
+      <div class="calc-section-header" onclick="toggleCalcSection(${ci})">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <span class="calc-toggle-icon" id="calcToggle${ci}">▼</span>
+          <span class="name">${cat.name}</span>
+          <span class="calc-contract" id="calcContract${ci}" style="display:none">合同剩余 ¥0.00</span>
+          <span class="calc-remain" id="calcRemain${ci}" style="display:none">成本剩余 ¥0.00</span>
+          <span class="calc-profit" id="calcProfit${ci}" style="display:none">利润率 0%</span>
+        </div>
+        <span class="total" id="catTotal${ci}">¥0.00</span>
+      </div>
+      <div class="calc-section-body" id="calcBody${ci}">
+        <table class="calc-tbl">
+          <thead>
+            <tr>
+              <th style="min-width:160px">项目</th>
+              ${SIMPLE_INDICES.includes(ci) ? `
+              <th style="min-width:100px">单价</th>
+              <th style="min-width:90px">次数</th>
+              <th style="min-width:120px">总价</th>
+              <th style="width:36px"></th>
+              ` : `
+              <th style="min-width:100px">单价</th>
+              <th style="min-width:90px">单位</th>
+              <th style="min-width:80px">数量</th>
+              <th style="min-width:80px">天数</th>
+              <th style="min-width:120px">总价</th>
+              <th style="width:36px"></th>
+              `}
+            </tr>
+          </thead>
+          <tbody id="calcTbody${ci}"></tbody>
+        </table>
+        <div class="calc-section-footer">
+          <button class="add-row" onclick="event.stopPropagation();addCalcItem(${ci})">＋ 添加子项</button>
+          <span style="font-size:11px;color:#94a3b8">${COST_TYPES[ci].note || ''}</span>
+        </div>
+      </div>
+    `;
+    container.appendChild(section);
+    renderCalcItems(ci);
+  });
+}
+
+function renderCalcItems(ci) {
+  const tbody = document.getElementById(`calcTbody${ci}`);
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  const simple = SIMPLE_INDICES.includes(ci);
+  calcData[ci].items.forEach((item, ii) => {
+    const tr = document.createElement('tr');
+    if (simple) {
+      tr.innerHTML = `
+        <td><input type="text" class="calc-input calc-input-name" value="${esc(item.name)}"
+          placeholder="项目名称" oninput="calcData[${ci}].items[${ii}].name=this.value"></td>
+        <td><input type="number" class="calc-input calc-input-num" value="${item.price}" placeholder="0"
+          min="0" step="0.01" oninput="calcData[${ci}].items[${ii}].price=this.value;recalcCalculator()"></td>
+        <td><input type="number" class="calc-input calc-input-num" value="${item.qty}" placeholder="0"
+          min="0" step="0.01" oninput="calcData[${ci}].items[${ii}].qty=this.value;recalcCalculator()"></td>
+        <td class="calc-total" id="itemTotal${ci}_${ii}">¥0.00</td>
+        <td style="text-align:center"><span class="calc-del" onclick="delCalcItem(${ci},${ii})" title="删除">×</span></td>
+      `;
+    } else {
+      tr.innerHTML = `
+        <td><input type="text" class="calc-input calc-input-name" value="${esc(item.name)}"
+          placeholder="项目名称" oninput="calcData[${ci}].items[${ii}].name=this.value"></td>
+        <td><input type="number" class="calc-input calc-input-num" value="${item.price}" placeholder="0"
+          min="0" step="0.01" oninput="calcData[${ci}].items[${ii}].price=this.value;recalcCalculator()"></td>
+        <td><input type="text" class="calc-input" value="${esc(item.unit)}" placeholder="单位"
+          oninput="calcData[${ci}].items[${ii}].unit=this.value"></td>
+        <td><input type="number" class="calc-input calc-input-num" value="${item.qty}" placeholder="0"
+          min="0" step="0.01" oninput="calcData[${ci}].items[${ii}].qty=this.value;recalcCalculator()"></td>
+        <td><input type="number" class="calc-input calc-input-num" value="${item.days}" placeholder="0"
+          min="0" step="0.01" oninput="calcData[${ci}].items[${ii}].days=this.value;recalcCalculator()"></td>
+        <td class="calc-total" id="itemTotal${ci}_${ii}">¥0.00</td>
+        <td style="text-align:center"><span class="calc-del" onclick="delCalcItem(${ci},${ii})" title="删除">×</span></td>
+      `;
+    }
+    tbody.appendChild(tr);
+  });
+}
+
+function toggleCalcSection(ci) {
+  const body = document.getElementById(`calcBody${ci}`);
+  const icon = document.getElementById(`calcToggle${ci}`);
+  if (body.classList.contains('collapsed')) {
+    body.classList.remove('collapsed');
+    icon.classList.remove('rotated');
+  } else {
+    body.classList.add('collapsed');
+    icon.classList.add('rotated');
+  }
+}
+
+function addCalcItem(ci) {
+  calcData[ci].items.push({ name: '', price: '', unit: '', qty: '', days: '' });
+  renderCalcItems(ci);
+  recalcCalculator();
+}
+
+function delCalcItem(ci, ii) {
+  calcData[ci].items.splice(ii, 1);
+  if (calcData[ci].items.length === 0) {
+    calcData[ci].items.push({ name: '', price: '', unit: '', qty: '', days: '' });
+  }
+  renderCalcItems(ci);
+  recalcCalculator();
+}
+
+function resetCalculator() {
+  if (!confirm('确定要重置所有计算器数据吗？此操作不可撤销。')) return;
+  calcData = JSON.parse(JSON.stringify(CALC_PRESETS));
+  renderCalculator();
+  recalcCalculator();
+}
+
+/* ========== 计算 ========== */
+function recalcCalculator() {
+  let grandTotal = 0;
+
+  calcData.forEach((cat, ci) => {
+    let catTotal = 0;
+    const simple = SIMPLE_INDICES.includes(ci);
+    cat.items.forEach((item, ii) => {
+      const price = parseFloat(item.price) || 0;
+      const qty = parseFloat(item.qty) || 0;
+      const days = parseFloat(item.days) || 0;
+      const total = simple ? price * qty : price * qty * days;
+      catTotal += total;
+      const el = document.getElementById(`itemTotal${ci}_${ii}`);
+      if (el) el.textContent = fmtY(total);
+    });
+    grandTotal += catTotal;
+    const catEl = document.getElementById(`catTotal${ci}`);
+    if (catEl) catEl.textContent = fmtY(catTotal);
+  });
+
+  /* 总合计 */
+  const grandEl = document.getElementById('calcGrandTotalValue');
+  if (grandEl) grandEl.textContent = fmtY(grandTotal);
+
+  /* 顶部指标 */
+  const amt = parseFloat(document.getElementById('contractAmount').value) || 0;
+  const margin = parseFloat(document.getElementById('marginRate').value) || 0;
+  const actualCost = amt / 1.06 * (1 - margin / 100);
+  const revenue = amt / 1.06;
+  const remain = actualCost - grandTotal;
+  const profitRate = revenue > 0 ? (revenue - grandTotal) / revenue * 100 : null;
+
+  /* 实际成本参考 */
+  const metricActual = document.getElementById('metricActual');
+  if (metricActual) {
+    metricActual.textContent = (amt > 0 && margin > 0) ? fmtY(actualCost) : '¥0.00';
+  }
+  /* 计算器合计 */
+  const metricCalc = document.getElementById('metricCalc');
+  if (metricCalc) metricCalc.textContent = fmtY(grandTotal);
+  /* 成本剩余 */
+  const metricRemain = document.getElementById('metricRemain');
+  const metricCardRemain = document.getElementById('metricCardRemain');
+  if (metricRemain && metricCardRemain) {
+    if (amt > 0 && margin > 0) {
+      metricRemain.textContent = (remain >= 0 ? '+' : '') + fmtY(remain);
+      if (remain < -0.01) {
+        metricCardRemain.classList.add('danger');
+      } else {
+        metricCardRemain.classList.remove('danger');
+      }
+    } else {
+      metricRemain.textContent = '¥0.00';
+      metricCardRemain.classList.remove('danger');
+    }
+  }
+  /* 当前利润率 */
+  const metricProfit = document.getElementById('metricProfit');
+  const metricCardProfit = document.getElementById('metricCardProfit');
+  if (metricProfit && metricCardProfit) {
+    if (amt > 0 && profitRate !== null) {
+      metricProfit.textContent = profitRate.toFixed(1) + '%';
+      if (profitRate < 0) {
+        metricCardProfit.classList.add('danger');
+      } else {
+        metricCardProfit.classList.remove('danger');
+      }
+    } else {
+      metricProfit.textContent = '—';
+      metricCardProfit.classList.remove('danger');
+    }
+  }
+
+  /* 各分类的合同剩余 / 成本剩余 / 利润率 */
+  function applyRemainStyle(el) {
+    if (amt > 0 && margin > 0) {
+      el.style.display = 'inline-block';
+      el.textContent = `成本剩余 ${fmtY(Math.max(0, remain))}`;
+      if (remain < -0.01) {
+        el.style.color = '#dc2626';
+        el.style.background = '#fef2f2';
+        el.style.borderColor = '#fecaca';
+      } else if (Math.abs(remain) < 0.01) {
+        el.style.color = '#64748b';
+        el.style.background = '#f1f5f9';
+        el.style.borderColor = '#cbd5e1';
+      } else {
+        el.style.color = '#16a34a';
+        el.style.background = '#f0fdf4';
+        el.style.borderColor = '#bbf7d0';
+      }
+    } else {
+      el.style.display = 'none';
+    }
+  }
+
+  function applyProfitStyle(el) {
+    if (amt > 0 && profitRate !== null) {
+      el.style.display = 'inline-block';
+      el.textContent = `利润率 ${profitRate.toFixed(1)}%`;
+      if (profitRate < 0) {
+        el.style.color = '#dc2626';
+        el.style.background = '#fef2f2';
+        el.style.borderColor = '#fecaca';
+      } else if (margin > 0 && profitRate < margin) {
+        el.style.color = '#d97706';
+        el.style.background = '#fffbeb';
+        el.style.borderColor = '#fde68a';
+      } else {
+        el.style.color = '#2563eb';
+        el.style.background = '#eff6ff';
+        el.style.borderColor = '#bfdbfe';
+      }
+    } else {
+      el.style.display = 'none';
+    }
+  }
+
+  function applyContractStyle(el, val) {
+    if (amt > 0) {
+      el.style.display = 'inline-block';
+      el.textContent = `合同剩余 ${fmtY(val)}`;
+      if (val < -0.01) {
+        el.style.color = '#dc2626';
+        el.style.background = '#fef2f2';
+        el.style.borderColor = '#fecaca';
+      } else {
+        el.style.color = '#7c3aed';
+        el.style.background = '#f5f3ff';
+        el.style.borderColor = '#ddd6fe';
+      }
+    } else {
+      el.style.display = 'none';
+    }
+  }
+
+  const contractRemain = revenue - grandTotal;
+  calcData.forEach((_, ci) => {
+    const remainEl = document.getElementById(`calcRemain${ci}`);
+    if (remainEl) applyRemainStyle(remainEl);
+    const profitEl = document.getElementById(`calcProfit${ci}`);
+    if (profitEl) applyProfitStyle(profitEl);
+    const contractEl = document.getElementById(`calcContract${ci}`);
+    if (contractEl) applyContractStyle(contractEl, contractRemain);
+  });
+}
+
+/* ========== 一言 API ========== */
+function fetchHitokoto() {
+  fetch('https://v1.hitokoto.cn/?c=a&c=b&c=c&c=d&c=f&c=h&c=i&c=k&c=l&min_length=8&max_length=50&encode=json')
+    .then(r => r.json())
+    .then(data => {
+      const textEl = document.getElementById('hitokotoText');
+      const fromEl = document.getElementById('hitokotoFrom');
+      textEl.textContent = data.hitokoto || '生活不止眼前的苟且，还有远方的苟且。';
+      const fromParts = [];
+      if (data.from) fromParts.push(data.from);
+      if (data.from_who) fromParts.push(data.from_who);
+      fromEl.textContent = fromParts.length ? `—— ${fromParts.join(' · ')}` : '';
+    })
+    .catch(() => {
+      document.getElementById('hitokotoText').textContent = '人如果没有梦想，和咸鱼有什么区别。';
+      document.getElementById('hitokotoFrom').textContent = '—— 少林足球';
+    });
+}
+
+/* ========== 初始化 ========== */
+renderCalculator();
+recalcCalculator();
+fetchHitokoto();
+</script>
+</body>
+</html>
