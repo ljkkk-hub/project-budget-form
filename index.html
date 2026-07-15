@@ -94,10 +94,10 @@
   }
 
   /* ========== 容器 ========== */
-  .container { max-width: 1480px; margin: 0 auto; padding: 32px 24px 60px; display: flex; gap: 20px; }
+  .container { max-width: 1680px; margin: 0 auto; padding: 32px 24px 60px; display: flex; gap: 20px; }
   .main-content { flex: 1; min-width: 0; }
   .draft-sidebar {
-    width: 240px; flex-shrink: 0; background: #fff; border-radius: 16px;
+    width: 200px; flex-shrink: 0; background: #fff; border-radius: 16px;
     border: 1px solid #e8ecf1; box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03);
     display: flex; flex-direction: column;
     align-self: flex-start; position: sticky; top: 24px; max-height: calc(100vh - 48px);
@@ -156,7 +156,7 @@
 
   /* ========== 右侧工具栏 ========== */
   .right-sidebar {
-    width: 160px; flex-shrink: 0; display: flex; flex-direction: column; gap: 12px;
+    width: 120px; flex-shrink: 0; display: flex; flex-direction: column; gap: 12px;
     align-self: flex-start; position: sticky; top: 24px;
   }
   .right-sidebar-card {
@@ -299,7 +299,7 @@
   }
 
   /* ========== 表格 ========== */
-  .tbl { border-collapse: collapse; width: 100%; }
+  .tbl { border-collapse: collapse; width: 100%; table-layout: fixed; }
   .tbl th {
     background: #1e3a5f;
     color: #fff;
@@ -353,7 +353,7 @@
     padding: 8px 6px;
   }
 
-  .cost-wrap { min-width: 1280px; }
+  .cost-wrap { min-width: 0; }
   .cost-row-header {
     background: #f8fafc;
     font-weight: 600;
@@ -412,9 +412,9 @@
 
   .cost-header-type { background: #1e3a5f; color: #fff; font-weight: 600; font-size: 12px; padding: 10px 12px; text-align: center; white-space: nowrap; border: 1px solid #1e3a5f; }
   .cost-header-time { background: #1e3a5f; color: #fff; font-weight: 600; font-size: 12px; padding: 10px 4px; text-align: center; white-space: nowrap; border: 1px solid #1e3a5f; }
-  .cost-header-month { background: #1e3a5f; color: #fff; font-weight: 600; font-size: 12px; padding: 10px 4px; text-align: center; white-space: nowrap; min-width: 76px; border: 1px solid #1e3a5f; }
-  .cost-header-total { background: #1e3a5f; color: #fff; font-weight: 600; font-size: 12px; padding: 10px 8px; text-align: center; white-space: nowrap; min-width: 90px; border: 1px solid #1e3a5f; }
-  .cost-header-note { background: #1e3a5f; color: #fff; font-weight: 600; font-size: 12px; padding: 10px 12px; text-align: center; white-space: nowrap; min-width: 180px; border: 1px solid #1e3a5f; }
+  .cost-header-month { background: #1e3a5f; color: #fff; font-weight: 600; font-size: 12px; padding: 10px 4px; text-align: center; white-space: nowrap; border: 1px solid #1e3a5f; }
+  .cost-header-total { background: #1e3a5f; color: #fff; font-weight: 600; font-size: 12px; padding: 10px 8px; text-align: center; white-space: nowrap; border: 1px solid #1e3a5f; }
+  .cost-header-note { background: #1e3a5f; color: #fff; font-weight: 600; font-size: 12px; padding: 10px 12px; text-align: center; white-space: nowrap; border: 1px solid #1e3a5f; }
 
   .row-total td { background: #eef2ff !important; font-weight: 700; }
   .row-total .cost-row-header { background: #eef2ff !important; }
@@ -754,6 +754,14 @@
     <div class="overflow-x-auto">
       <div class="cost-wrap">
         <table class="tbl" id="costTable">
+          <colgroup>
+            <col style="width:7%">                     <!-- 1  成本类型 -->
+            <col span="12" style="width:5.5%">         <!-- 2-13  1-12月 -->
+            <col style="width:6%">                     <!-- 14 合计 -->
+            <col style="width:6%">                     <!-- 15 计算器合计 -->
+            <col style="width:6%">                     <!-- 16 校验 -->
+            <col style="width:9%">                     <!-- 17 备注 -->
+          </colgroup>
           <thead>
             <tr>
               <th class="cost-header-type" rowspan="2">成本类型</th>
@@ -1568,7 +1576,7 @@ function checkCalcDiff() {
     grandManual += manual;
     grandCalc += calc;
 
-    if (calc > 0) {
+    if (calc > 0 || manual > 0) {
       if (Math.abs(manual - calc) < 0.01) {
         checkEl.innerHTML = '<span style="color:#16a34a;font-weight:700">✓</span>';
       } else {
@@ -1582,7 +1590,7 @@ function checkCalcDiff() {
   // 底部合计行校验
   const grandCheckEl = document.getElementById('calcCheckGrand');
   if (grandCheckEl) {
-    if (grandCalc > 0) {
+    if (grandCalc > 0 || grandManual > 0) {
       if (Math.abs(grandManual - grandCalc) < 0.01) {
         grandCheckEl.innerHTML = '<span style="color:#16a34a;font-weight:700">✓</span>';
       } else {
